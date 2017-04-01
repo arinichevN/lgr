@@ -224,6 +224,8 @@ void printHelp() {
     sendStr(q, &crc);
     snprintf(q, sizeof q, "%c\tunload program from RAM; program id expected if '.' quantifier is used\n", ACP_CMD_STOP);
     sendStr(q, &crc);
+    snprintf(q, sizeof q, "%c\tunload program from RAM and then load it again; program id expected if '.' quantifier is used\n", ACP_CMD_RESET);
+    sendStr(q, &crc);
     snprintf(q, sizeof q, "%c\tenable running program; program id expected if '.' quantifier is used\n", ACP_CMD_LGR_PROG_ENABLE);
     sendStr(q, &crc);
     snprintf(q, sizeof q, "%c\tdisable running program; program id expected if '.' quantifier is used\n", ACP_CMD_LGR_PROG_DISABLE);

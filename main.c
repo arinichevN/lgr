@@ -205,6 +205,7 @@ void serverRun(int *state, int init_state) {
     switch (buf_in[1]) {
         case ACP_CMD_STOP:
         case ACP_CMD_START:
+        case ACP_CMD_RESET:
         case ACP_CMD_LGR_PROG_ENABLE:
         case ACP_CMD_LGR_PROG_DISABLE:
         case ACP_CMD_LGR_PROG_GET_DATA_INIT:
@@ -254,6 +255,33 @@ void serverRun(int *state, int init_state) {
                     break;
                 }
                 case ACP_QUANTIFIER_SPECIFIC:
+                    for (i = 0; i < i1l.length; i++) {
+                        addProgById(i1l.item[i], &prog_list, &peer_list, db_data_path);
+                    }
+                    break;
+            }
+            return;
+        case ACP_CMD_RESET:
+            switch (buf_in[0]) {
+                case ACP_QUANTIFIER_BROADCAST:
+                {
+
+                    PROG_LIST_LOOP_DF
+                    PROG_LIST_LOOP_ST
+                    curr->state = OFF;
+                    deleteProgById(curr->id, &prog_list, db_data_path);
+                    PROG_LIST_LOOP_SP
+                    loadAllProg(db_data_path, &prog_list, &peer_list);
+                    break;
+                }
+                case ACP_QUANTIFIER_SPECIFIC:
+                    for (i = 0; i < i1l.length; i++) {
+                        Prog *curr = getProgById(i1l.item[i], &prog_list);
+                        if (curr != NULL) {
+                            curr->state = OFF;
+                            deleteProgById(i1l.item[i], &prog_list, db_data_path);
+                        }
+                    }
                     for (i = 0; i < i1l.length; i++) {
                         addProgById(i1l.item[i], &prog_list, &peer_list, db_data_path);
                     }
@@ -488,7 +516,7 @@ int saveFTS(Prog *item, const char *db_path) {
     } else {
         status = STATUS_FAILURE;
     }
-    struct timespec now=getCurrentTime();
+    struct timespec now = getCurrentTime();
     if (n < item->max_rows) {
         snprintf(q, sizeof q, "insert into v_real(id, mark, value, status) values (%d, %ld, %f, '%s')", item->id, now.tv_sec, item->sensor_fts.value.value, status);
         if (!db_exec(db, q, 0, 0)) {
@@ -520,7 +548,7 @@ int clearLog(int dev_id, sqlite3 *db) {
     }
     return 1;
 }
-*/
+ */
 
 void progControl(Prog *item) {
     switch (item->state) {
