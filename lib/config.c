@@ -172,7 +172,7 @@ int config_checkPeerList(const PeerList *list) {
     return 1;
 }
 
-int config_getPeerList(PGconn *db_conn, PeerList *list, int *fd) {
+int config_getPeerList(PGconn *db_conn, PeerList *list, int *fd, size_t sock_buf_size) {
     PGresult *r;
     size_t i;
     list->length = 0;
@@ -208,6 +208,7 @@ int config_getPeerList(PGconn *db_conn, PeerList *list, int *fd) {
                 fprintf(stderr, "config_getPeerList: ERROR: initMutex() failed for peer with id=%s\n", list->item[i].id);
                 return 0;
             }
+            list->item[i].sock_buf_size=sock_buf_size;
         }
     }
     PQclear(r);

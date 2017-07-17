@@ -19,6 +19,7 @@ int sock_port = -1;
 size_t sock_buf_size = 0;
 int sock_fd = -1;
 int sock_fd_tf = -1;
+unsigned int retry_max = 0;
 Peer peer_client = {.fd = &sock_fd, .addr_size = sizeof peer_client.addr};
 struct timespec cycle_duration = {0, 0};
 pthread_t thread;
@@ -42,29 +43,36 @@ int readSettings() {
 #endif
         return 0;
     }
-
+    char s[LINE_SIZE];
+    fgets(s, LINE_SIZE, stream);
     int n;
-    n = fscanf(stream, "%d\t%255s\t%d\t%ld\t%ld\t%255s\t%255s\t%255s\n",
+    n = fscanf(stream, "%d\t%255s\t%d\t%ld\t%ld\t%u\t%255s\t%255s\t%255s\n",
             &sock_port,
             pid_path,
             &sock_buf_size,
             &cycle_duration.tv_sec,
             &cycle_duration.tv_nsec,
+            &retry_max,
             db_data_path,
             db_public_path,
             db_log_path
-
             );
-    if (n != 8) {
+    if (n != 9) {
         fclose(stream);
+#ifdef MODE_DEBUG
+        fputs("ERROR: readSettings: bad row format", stderr);
+#endif
         return 0;
     }
     fclose(stream);
+#ifdef MODE_DEBUG
+    printf("readSettings: \n\tsock_port: %d, \n\tpid_path: %s, \n\tsock_buf_size: %d, \n\tcycle_duration: %ld sec %ld nsec, \n\tretry_max: %u, \n\tdb_data_path: %s, \n\tdb_public_path: %s, \n\tdb_log_path: %s\n", sock_port, pid_path, sock_buf_size, cycle_duration.tv_sec, cycle_duration.tv_nsec, retry_max, db_data_path, db_public_path, db_log_path);
+#endif
     return 1;
 }
 
 int initData() {
-    if (!config_getPeerList(&peer_list, &sock_fd_tf, db_public_path)) {
+    if (!config_getPeerList(&peer_list, &sock_fd_tf, sock_buf_size, db_public_path)) {
         FREE_LIST(&peer_list);
         return 0;
     }
@@ -92,19 +100,10 @@ void initApp() {
     if (!readSettings()) {
         exit_nicely_e("initApp: failed to read settings\n");
     }
+    peer_client.sock_buf_size = sock_buf_size;
     if (!initPid(&pid_file, &proc_id, pid_path)) {
         exit_nicely_e("initApp: failed to initialize pid\n");
     }
-#ifdef MODE_DEBUG
-    printf("initApp: PID: %d\n", proc_id);
-    printf("initApp: sock_port: %d\n", sock_port);
-    printf("initApp: sock_buf_size: %d\n", sock_buf_size);
-    printf("initApp: pid_path: %s\n", pid_path);
-    printf("initApp: db_data_path: %s\n", db_data_path);
-    printf("initApp: db_log_path: %s\n", db_log_path);
-    printf("initApp: db_public_path: %s\n", db_public_path);
-    printf("initApp: cycle_duration: %ld(sec) %ld(nsec)\n", cycle_duration.tv_sec, cycle_duration.tv_nsec);
-#endif
     if (!initMutex(&progl_mutex)) {
         exit_nicely_e("initApp: failed to initialize mutex\n");
     }
@@ -121,10 +120,6 @@ void initApp() {
 void serverRun(int *state, int init_state) {
     char buf_in[sock_buf_size];
     char buf_out[sock_buf_size];
-    uint8_t crc;
-    int i, j;
-    char q[LINE_SIZE];
-    crc = 0;
     memset(buf_in, 0, sizeof buf_in);
     acp_initBuf(buf_out, sizeof buf_out);
     if (recvfrom(sock_fd, buf_in, sizeof buf_in, 0, (struct sockaddr*) (&(peer_client.addr)), &(peer_client.addr_size)) < 0) {
@@ -133,9 +128,9 @@ void serverRun(int *state, int init_state) {
 #endif
     }
 #ifdef MODE_DEBUG
-    dumpBuf(buf_in, sizeof buf_in);
+    acp_dumpBuf(buf_in, sizeof buf_in);
 #endif    
-    if (!crc_check(buf_in, sizeof buf_in)) {
+    if (!acp_crc_check(buf_in, sizeof buf_in)) {
 #ifdef MODE_DEBUG
         fputs("WARNING: serverRun: crc check failed\n", stderr);
 #endif
@@ -201,7 +196,7 @@ void serverRun(int *state, int init_state) {
         default:
             return;
     }
-
+    int i, j;
     switch (buf_in[1]) {
         case ACP_CMD_STOP:
         case ACP_CMD_START:
@@ -455,10 +450,8 @@ int readFTS(SensorFTS *s) {
 }
  */
 
-
-
 int readFTS(SensorFTS *s) {
-    return acp_readSensorFTS(s, sock_buf_size);
+    return acp_readSensorFTS(s);
 }
 
 /*
@@ -554,16 +547,26 @@ void progControl(Prog *item) {
     switch (item->state) {
         case INIT:
             item->tmr.ready = 0;
+            item->retry_count = 0;
             item->state = ACT;
             break;
         case ACT:
-            if (ton_ts(item->interval_min, &item->tmr)) {
+            if (ton_ts(item->interval_min, &item->tmr) || (item->retry_count > 0 && item->retry_count < retry_max)) {
                 if (strcmp(item->kind, LOG_KIND_FTS) == 0) {
-                    readFTS(&item->sensor_fts);
-                    saveFTS(item, db_log_path);
+                    if (readFTS(&item->sensor_fts)) {
+                        saveFTS(item, db_log_path);
+                        item->retry_count = 0;
 #ifdef MODE_DEBUG
-                    printf("saved: id=%d value=%f\n", item->id, item->sensor_fts.value.value);
-#endif
+                        printf("saved: id=%d value=%f\n", item->id, item->sensor_fts.value.value);
+#endif  
+                    } else {
+                        item->retry_count++;
+#ifdef MODE_DEBUG
+                        printf("failed to read: id=%d retry_count=%u\n", item->id, item->retry_count);
+#endif  
+                    }
+
+
                 } else {
 #ifdef MODE_DEBUG
                     puts("progControl: unknown kind");
@@ -712,6 +715,12 @@ void exit_nicely_e(char *s) {
 }
 
 int main(int argc, char** argv) {
+    if (geteuid() != 0) {
+#ifdef MODE_DEBUG
+        fprintf(stderr, "%s: root user expected\n", APP_NAME_STR);
+#endif
+        return (EXIT_FAILURE);
+    }
 #ifndef MODE_DEBUG
     daemon(0, 0);
 #endif

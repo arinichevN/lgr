@@ -14,6 +14,7 @@
 typedef struct {
     int initialized;
     int state;
+    unsigned int rsl;
     struct timespec start_time;
     struct timespec period; 
 } PWM;

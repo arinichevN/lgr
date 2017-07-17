@@ -8,6 +8,7 @@ void crc_update(uint8_t *crc, uint8_t b) {
     }
 }
 
+/*
 int crc_check(const char * buf, size_t buflen) {
     uint8_t crc, crc_fact = 0;
     int state, i = 0, found = 0;
@@ -50,6 +51,7 @@ int crc_check(const char * buf, size_t buflen) {
         return 0;
     }
 }
+*/
 
 void crc_update_by_str(uint8_t *crc, const char *str) {
     int i;

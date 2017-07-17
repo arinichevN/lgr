@@ -88,10 +88,10 @@ int dht22_read(int pin, float *t, float *h) {
             *t *= -1;
         }
         return 1;
-    } else {
-#ifdef MODE_DEBUG
-        fprintf(stderr, "dht22_read: ERROR: bad crc where pin=%d\n", pin);
-#endif
-        return 0;
     }
+#ifdef MODE_DEBUG
+    fprintf(stderr, "dht22_read: ERROR: bad crc where pin=%d\n", pin);
+#endif
+    return 0;
+
 }

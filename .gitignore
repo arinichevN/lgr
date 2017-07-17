@@ -1,5 +1,4 @@
+/.dep.inc
 /nbproject/
-/.autosave
-/bin
-/irg_dbg
-/irg
+/*.autosave
+/*_dbg

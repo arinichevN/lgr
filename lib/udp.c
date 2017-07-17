@@ -67,12 +67,15 @@ int makeClientAddr(struct sockaddr_in *addr, const char *addr_str, int port) {
 }
 
 int sendBuf(void *buf, size_t buf_size, int fd, struct sockaddr *addr, socklen_t addr_len) {
-    if (sendto(fd, buf, buf_size, 0, addr, addr_len) < 0) {
+    ssize_t n;
+    n=sendto(fd, buf, buf_size, 0, addr, addr_len);
+    if (n < 0) {
 #ifdef MODE_DEBUG
         perror("sendBuf: error writing to socket");
 #endif
         return 0;
     }
+    return n;
 }
 
 int serverRead(void *buf, size_t buf_size, int fd, struct sockaddr * addr, socklen_t * addr_len) {

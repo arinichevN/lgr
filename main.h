@@ -27,7 +27,7 @@
 #define CONFIG_FILE "" CONF_DIR "config.tsv"
 #define CONFIG_FILE_DB "" CONF_DIR "main.conf"
 
-#define WAIT_RESP_TIMEOUT 1
+#define WAIT_RESP_TIMEOUT 3
 
 #define LOG_KIND_FTS "fts"
 #define STATUS_SUCCESS "SUCCESS"
@@ -52,6 +52,7 @@ struct prog_st {
     size_t max_rows;
     char kind[NAME_SIZE];
 
+    unsigned int retry_count;
     char state;
     Ton_ts tmr;
     SensorFTS sensor_fts;

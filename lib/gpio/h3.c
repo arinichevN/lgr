@@ -10,7 +10,6 @@
 
 static volatile uint32_t *gpio;
 
-int gpio_fd;
 
 static int physToGpio[GPIO_NUM] = {
     -1, // 0
@@ -27,7 +26,7 @@ static int physToGpio[GPIO_NUM] = {
     65, 2, //21, 22
     66, 67, //23, 24
     -1, 21, //25, 26
-    
+
     19, 18, //27, 28
     7, -1, //29, 30
     8, 200, //31, 32
@@ -68,7 +67,7 @@ static int physToGpio[GPIO_NUM] = {
     -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, //41-> 55
     -1, -1, -1, -1, -1, -1, -1, -1 // 56-> 63
 };
-*/
+ */
 static uint32_t gpio_data_seek [GPIO_NUM];
 static int gpio_data_bank [GPIO_NUM];
 static int gpio_data_index [GPIO_NUM];
@@ -198,28 +197,25 @@ int checkPin(int pin) {
 }
 
 int gpioSetup() {
-    if (geteuid() != 0) {
-        fputs("gpioSetup: root user expected\n", stderr);
-        return 0;
-    }
-
     // Open the master /dev/memory device
-
+    int gpio_fd;
     if ((gpio_fd = open("/dev/mem", O_RDWR | O_SYNC | O_CLOEXEC)) < 0) {
-        fputs("gpioSetup: Unable to open /dev/mem: %s\n", stderr);
+        fputs("gpioSetup: Unable to open /dev/mem\n", stderr);
         return 0;
     }
     // GPIO:
     gpio = (volatile uint32_t *) mmap(0, BLOCK_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, gpio_fd, CCU_BASE);
+    close(gpio_fd);
     if (gpio == MAP_FAILED) {
-        fputs("gpioSetup: mmap (GPIO) failed: %s\n", stderr);
+        fputs("gpioSetup: mmap failed\n", stderr);
         return 0;
     }
     makeGpioDataOffset();
     return 1;
 }
-int gpioFree(){
-    close(gpio_fd);
+
+int gpioFree() {
+
 }
 
 

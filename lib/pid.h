@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #define PID_MODE_HEATER 'h'
 #define PID_MODE_COOLER 'c'
+#define PID_MODE_UNKNOWN 'u'
 #define PID_TUNE_START_VALUE 100.0f
 #define PID_TUNE_NOISE 1.0f
 #define PID_TUNE_STEP 50.0f

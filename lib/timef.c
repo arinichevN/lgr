@@ -9,8 +9,7 @@ struct timespec getCurrentTime() {
 void delayUsBusy(unsigned int td) {
     struct timespec now, interval, end;
     clock_gettime(LIB_CLOCK, &now);
-    interval.tv_sec = td / 1000000;
-    interval.tv_nsec = (td % 1000000)*1000;
+    usec2timespec(td, &interval)
     timespecadd(&now, &interval, &end);
     while (timespeccmp(&now, &end, <)) {
         clock_gettime(LIB_CLOCK, &now);
@@ -29,8 +28,7 @@ void delayUsBusyC(unsigned int td) {
 
 void delayUsIdle(unsigned int td) {
     struct timespec requested, remaining;
-    requested.tv_sec = (time_t) (td / 1000000);
-    requested.tv_nsec = (long) (td % 1000000) * 1000;
+    usec2timespec(td, &requested)
     nanosleep(&requested, &remaining);
 }
 

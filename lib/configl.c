@@ -21,7 +21,8 @@ int config_checkPeerList(const PeerList *list) {
 static int getPeerList_callback(void *data, int argc, char **argv, char **azColName) {
     PeerData *peer_data = data;
     int port = 0;
-    char addr_str[NAME_SIZE];int i;
+    char addr_str[NAME_SIZE];
+    int i;
     for (i = 0; i < argc; i++) {
         if (strcmp("id", azColName[i]) == 0) {
             memcpy(PDLi.id, argv[i], NAME_SIZE);
@@ -41,6 +42,7 @@ static int getPeerList_callback(void *data, int argc, char **argv, char **azColN
     PDLi.addr_size = sizeof PDLi.addr;
     PDLi.fd = PDLd;
     PDLi.active = 0;
+    PDLi.sock_buf_size = peer_data->sock_buf_size;
     if (!initMutex(&PDLi.mutex)) {
         fprintf(stderr, "getPeerList_callback: ERROR: initMutex() failed for peer with id=%s\n", PDLi.id);
         peer_data->list->length++;
@@ -51,7 +53,8 @@ static int getPeerList_callback(void *data, int argc, char **argv, char **azColN
 }
 
 static int getPhoneNumber_callback(void *data, int argc, char **argv, char **azColName) {
-    S1List *item = (S1List *) data;int i;
+    S1List *item = (S1List *) data;
+    int i;
     for (i = 0; i < argc; i++) {
         if (strcmp("value", azColName[i]) == 0) {
             memcpy(&item->item[item->length * LINE_SIZE], argv[i], LINE_SIZE);
@@ -65,7 +68,8 @@ static int getPhoneNumber_callback(void *data, int argc, char **argv, char **azC
 }
 
 static int getSensorFTS_callback(void *data, int argc, char **argv, char **azColName) {
-    SensorFTSData *item = data;int i;
+    SensorFTSData *item = data;
+    int i;
     for (i = 0; i < argc; i++) {
         if (strcmp("peer_id", azColName[i]) == 0) {
             item->sensor->source = getPeerById(argv[i], item->peer_list);
@@ -79,7 +83,8 @@ static int getSensorFTS_callback(void *data, int argc, char **argv, char **azCol
 }
 
 static int getEM_callback(void *data, int argc, char **argv, char **azColName) {
-    EMData *item = data;int i;
+    EMData *item = data;
+    int i;
     for (i = 0; i < argc; i++) {
         if (strcmp("peer_id", azColName[i]) == 0) {
             item->em->source = getPeerById(argv[i], item->peer_list);
@@ -95,13 +100,13 @@ static int getEM_callback(void *data, int argc, char **argv, char **azColName) {
     return 0;
 }
 
-int config_getPeerList(PeerList *list, int *fd, const char *db_path) {
+int config_getPeerList(PeerList *list, int *fd, size_t sock_buf_size, const char *db_path) {
     sqlite3 *db;
     if (!db_open(db_path, &db)) {
         return 0;
     }
     int n = 0;
-    char *qn = "SELECT count(*) FROM peer";
+    char *qn = "select count(*) FROM peer";
     db_getInt(&n, db, qn);
     if (n <= 0) {
         sqlite3_close(db);
@@ -113,8 +118,8 @@ int config_getPeerList(PeerList *list, int *fd, const char *db_path) {
         sqlite3_close(db);
         return 0;
     }
-    PeerData data = {list, fd};
-    char *q = "SELECT id, port, ip_addr FROM peer";
+    PeerData data = {.list=list, .fd=fd, .sock_buf_size=sock_buf_size};
+    char *q = "select id, port, ip_addr FROM peer";
     if (!db_exec(db, q, getPeerList_callback, (void*) &data)) {
 #ifdef MODE_DEBUG
         fprintf(stderr, "config_getPeerList: query failed: %s\n", q);
@@ -165,10 +170,10 @@ int config_getEM(EM *item, int em_id, const PeerList *pl, sqlite3 *db) {
     return 1;
 }
 
-int config_getPeer(Peer *item, char * peer_id, int *fd, sqlite3 *db) {
+int config_getPeer(Peer *item, char * peer_id, int *fd, size_t sock_buf_size, sqlite3 *db) {
     char q[LINE_SIZE];
     PeerList pl = {.item = item, .length = 0};
-    PeerData data = {&pl, fd};
+    PeerData data = {.list=&pl, .fd=fd, .sock_buf_size=sock_buf_size};
     memset(item, 0, sizeof *item);
     snprintf(q, sizeof q, "SELECT id, port, ip_addr FROM peer where id='%s'", peer_id);
     if (!db_exec(db, q, getPeerList_callback, (void*) &data)) {

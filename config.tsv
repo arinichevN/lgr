@@ -1,1 +1,2 @@
-49172	/var/run/lgr.pid	508	1	5000000	/etc/controller/lgr/data.db	/etc/controller/public.db	/media/bb_control/log.db
+port	PID_path	socket_buffer_size 	cycle_duration_sec	cycle_duration_nsec	retry_count	private_db_file	public_db_file	log_db_file
+49172	/var/run/lgr.pid	508	1	5000000	7	/etc/controller/lgr/data.db	/etc/controller/public.db	/etc/controller/log.db

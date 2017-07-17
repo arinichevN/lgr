@@ -7,15 +7,6 @@ CONF_DIR=/etc/controller
 CONF_DIR_APP=$CONF_DIR/$APP
 PID_DIR=/var/run
 
-#lubuntu armbian
-#PSQL_I_DIR=-I/usr/include/postgresql
-#xubuntu
-#PSQL_I_DIR=-I/opt/PostgreSQL/9.5/include 
-
-#PSQL_L_DIR=-L/opt/PostgreSQL/9.5/lib
-#armbian
-#PSQL_L_DIR=-L/usr/lib/arm-linux-gnueabihf
-
 MODE_DEBUG=-DMODE_DEBUG
 MODE_FULL=-DMODE_FULL
 

@@ -102,8 +102,16 @@ int initPid(int *pid_file, int *pid, const char *pid_path) {
                 return 0;
             }
         } else {//lock succeeded
-            *pid = getpid();
-            sprintf(pid_str, "%d\n", *pid);
+            __pid_t p;
+            p = getpid();
+            if (pid != NULL) {
+                *pid = (int) p;
+#ifdef MODE_DEBUG
+                printf("initPid: PID: %d\n", *pid);
+#endif
+            }
+
+            sprintf(pid_str, "%d\n", p);
             n_written = write(*pid_file, pid_str, sizeof pid_str);
             if (n_written != sizeof pid_str) {
                 fputs("setPid: writing to pid file failed\n", stderr);
