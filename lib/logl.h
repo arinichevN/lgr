@@ -7,7 +7,7 @@
 #include "timef.h"
 #include "main.h"
 
-extern int log_saveAlert(char * message, int limit, const char *db_path);
+extern int log_saveAlert(char * message, unsigned int limit, const char *db_path);
 
 #endif 
 

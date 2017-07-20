@@ -39,7 +39,7 @@ int readSettings() {
     FILE* stream = fopen(CONFIG_FILE, "r");
     if (stream == NULL) {
 #ifdef MODE_DEBUG
-        fputs("ERROR: readSettings: fopen", stderr);
+        fputs("ERROR: readSettings: fopen\n", stderr);
 #endif
         return 0;
     }
@@ -60,7 +60,7 @@ int readSettings() {
     if (n != 9) {
         fclose(stream);
 #ifdef MODE_DEBUG
-        fputs("ERROR: readSettings: bad row format", stderr);
+        fputs("ERROR: readSettings: bad row format\n", stderr);
 #endif
         return 0;
     }

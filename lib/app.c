@@ -107,7 +107,7 @@ int initPid(int *pid_file, int *pid, const char *pid_path) {
             if (pid != NULL) {
                 *pid = (int) p;
 #ifdef MODE_DEBUG
-                printf("initPid: PID: %d\n", *pid);
+                printf("initPid: \n\tPID: %d\n", *pid);
 #endif
             }
 

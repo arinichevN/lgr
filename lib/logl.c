@@ -1,5 +1,5 @@
 #include "logl.h"
-int log_saveAlert(char * message, int limit, const char *db_path) {
+int log_saveAlert(char * message, unsigned int limit, const char *db_path) {
     if (limit <= 0) {
         return 0;
     }
