@@ -67,7 +67,6 @@ int ds18b20_write_scratchpad(int pin, const uint8_t *addr, const uint8_t *data) 
         return 0;
     }
     onewire_send_byte(pin, DS18B20_CMD_WRITE_SCRATCHPAD);
-    uint8_t scratchpad[DS18B20_EEPROM_BYTE_NUM];
     int i;
     for (i = 0; i < DS18B20_EEPROM_BYTE_NUM; i++) {
         onewire_send_byte(pin, data[i]);

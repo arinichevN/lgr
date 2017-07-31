@@ -168,7 +168,7 @@ void printAll() {
                 peer_list.item[i].addr.sin_addr.s_addr,
                 *peer_list.item[i].fd,
                 peer_list.item[i].active,
-                &peer_list.item[i]
+                (void *)&peer_list.item[i]
                 );
         sendStr(q, &crc);
     }
@@ -187,8 +187,8 @@ void printAll() {
             curr->kind,
             curr->interval_min.tv_sec,
             curr->max_rows,
-            curr,
-            &curr->sensor_fts,
+            (void *) curr,
+            (void *) &curr->sensor_fts,
             tm_rest.tv_sec
             );
     sendStr(q, &crc);

@@ -215,7 +215,7 @@ int gpioSetup() {
 }
 
 int gpioFree() {
-
+    return 1;
 }
 
 

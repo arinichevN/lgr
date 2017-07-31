@@ -128,7 +128,6 @@ float pidwt(PID *p, float set_point, float input, struct timespec tm) {
 //time from outside, output limited
 
 float pidwt_mx(PID *p, float set_point, float input, struct timespec tm) {
-    struct timespec now = getCurrentTime();
     float output;
     if (!p->reset) {
         double dt;

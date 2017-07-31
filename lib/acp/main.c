@@ -725,6 +725,7 @@ int acp_setEMOutput(EM *em, int output) {
             return 1;
         }
     }
+    return 0;
 }
 
 int acp_setEMDutyCycle(EM *em, float output) {
@@ -753,6 +754,7 @@ int acp_setEMDutyCycle(EM *em, float output) {
             return 1;
         }
     }
+    return 0;
 }
 
 int acp_setEMOutputR(EM *em, int output) {
@@ -776,6 +778,7 @@ int acp_setEMOutputR(EM *em, int output) {
             return 1;
         }
     }
+    return 0;
 }
 
 int acp_setEMDutyCycleR(EM *em, float output) {
@@ -799,6 +802,7 @@ int acp_setEMDutyCycleR(EM *em, float output) {
             return 1;
         }
     }
+    return 0;
 }
 
 int acp_readSensorInt(SensorInt *s) {
@@ -1047,8 +1051,6 @@ int acp_sendCmdGetInt(Peer *item, char* cmd, int *output) {
     return 0;
 }
 
-
-
 int acp_sendSMS(Peer *peer, char *phone, char *message) {
     if (lockPeer(peer)) {
         S2 di[1];
@@ -1065,7 +1067,7 @@ int acp_sendSMS(Peer *peer, char *phone, char *message) {
         unlockPeer(peer);
         return 1;
     }
-
+    return 0;
 }
 
 int acp_makeCall(Peer *peer, char *phone) {
@@ -1081,16 +1083,18 @@ int acp_makeCall(Peer *peer, char *phone) {
         unlockPeer(peer);
         return 1;
     }
-
+    return 0;
 }
+
 int acp_catFTS(int id, float value, struct timespec tm, int state, char *buf, size_t buf_size) {
     char q[LINE_SIZE];
-    snprintf(q, sizeof q, "%d" ACP_DELIMITER_COLUMN_STR ACP_FLOAT_FORMAT ACP_DELIMITER_COLUMN_STR "%ld" ACP_DELIMITER_COLUMN_STR "%ld" ACP_DELIMITER_COLUMN_STR "%d" ACP_DELIMITER_ROW_STR, id, value,tm.tv_sec,tm.tv_nsec, state);
+    snprintf(q, sizeof q, "%d" ACP_DELIMITER_COLUMN_STR ACP_FLOAT_FORMAT ACP_DELIMITER_COLUMN_STR "%ld" ACP_DELIMITER_COLUMN_STR "%ld" ACP_DELIMITER_COLUMN_STR "%d" ACP_DELIMITER_ROW_STR, id, value, tm.tv_sec, tm.tv_nsec, state);
     if (bufCat(buf, q, buf_size) == NULL) {
         return 0;
     }
     return 1;
 }
+
 void freePeer(PeerList *list) {
     free(list->item);
     list->item = NULL;

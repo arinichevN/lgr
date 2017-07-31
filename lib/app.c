@@ -72,7 +72,7 @@ int readConf(const char *path, char conninfo[LINE_SIZE], char app_class[NAME_SIZ
 }
 
 int readHostName(char *hostname) {
-    memset(hostname, 0, sizeof hostname);
+    memset(hostname, 0, HOST_NAME_MAX);
     if (gethostname(hostname, HOST_NAME_MAX)) {
         perror("readHostName: failed to read\n");
         return 0;
@@ -222,5 +222,15 @@ void waitThreadCmd(char *thread_cmd, char *thread_qfr, char *cmd) {
     *thread_cmd = cmd[1];
     while (*thread_cmd != ACP_CMD_APP_NO) {
         nanosleep(&time_w, &time_r);
+    }
+}
+
+void skipLine(FILE* stream) {
+    int x;
+    while (1) {
+        x = fgetc(stream);
+        if (x == EOF || x == '\n') {
+            break;
+        }
     }
 }

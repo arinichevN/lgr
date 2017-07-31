@@ -43,8 +43,7 @@ int readSettings() {
 #endif
         return 0;
     }
-    char s[LINE_SIZE];
-    fgets(s, LINE_SIZE, stream);
+    skipLine(stream);
     int n;
     n = fscanf(stream, "%d\t%255s\t%d\t%ld\t%ld\t%u\t%255s\t%255s\t%255s\n",
             &sock_port,
@@ -196,7 +195,7 @@ void serverRun(int *state, int init_state) {
         default:
             return;
     }
-    int i, j;
+    int i;
     switch (buf_in[1]) {
         case ACP_CMD_STOP:
         case ACP_CMD_START:

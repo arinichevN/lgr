@@ -5,7 +5,6 @@
 
 int pwmctl(PWM *item, int duty_cycle) {
     struct timespec now, dif, time_req;
-    int time_req_sec;
     if (item->period.tv_sec < 0) {
 #ifdef MODE_DEBUG
         printf("pwmctl: old period=%ld sec, and now period=0", item->period.tv_sec);

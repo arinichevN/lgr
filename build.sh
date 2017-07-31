@@ -7,6 +7,7 @@ CONF_DIR=/etc/controller
 CONF_DIR_APP=$CONF_DIR/$APP
 PID_DIR=/var/run
 
+DEBUG_PARAM="-Wall -pedantic"
 MODE_DEBUG=-DMODE_DEBUG
 MODE_FULL=-DMODE_FULL
 
@@ -50,15 +51,15 @@ function conf_autostart {
 }
 
 function build_lib {
-	gcc $1 $PLATFORM -c app.c -D_REENTRANT -lpthread && \
-	gcc $1 $PLATFORM -c crc.c
-	gcc $1 $PLATFORM -c timef.c && \
-	gcc $1 $PLATFORM -c udp.c && \
-	gcc $1 $PLATFORM -c util.c && \
-	gcc $1 $PLATFORM -c dbl.c -DSQLITE_THREADSAFE=2 -DSQLITE_OMIT_LOAD_EXTENSION -lsqlite3 && \
-	gcc $1 $PLATFORM -c configl.c -DSQLITE_THREADSAFE=2 -DSQLITE_OMIT_LOAD_EXTENSION -lsqlite3 && \
+	gcc $1 $PLATFORM -c app.c -D_REENTRANT $DEBUG_PARAM -lpthread && \
+	gcc $1 $PLATFORM -c crc.c $DEBUG_PARAM && \
+	gcc $1 $PLATFORM -c timef.c $DEBUG_PARAM && \
+	gcc $1 $PLATFORM -c udp.c $DEBUG_PARAM && \
+	gcc $1 $PLATFORM -c util.c $DEBUG_PARAM && \
+	gcc $1 $PLATFORM -c dbl.c -DSQLITE_THREADSAFE=2 -DSQLITE_OMIT_LOAD_EXTENSION $DEBUG_PARAM -lsqlite3 && \
+	gcc $1 $PLATFORM -c configl.c -DSQLITE_THREADSAFE=2 -DSQLITE_OMIT_LOAD_EXTENSION $DEBUG_PARAM -lsqlite3 && \
 	cd acp && \
-	gcc $1 $PLATFORM -c main.c && \
+	gcc $1 $PLATFORM -c main.c $DEBUG_PARAM && \
 	cd ../ && \
 	echo "library: making archive..." && \
 	rm -f libpac.a
@@ -72,15 +73,17 @@ function build {
 	cd lib && \
 	build_lib $1 && \
 	cd ../ 
-	gcc -D_REENTRANT -DSQLITE_THREADSAFE=2 -DSQLITE_OMIT_LOAD_EXTENSION $1 $3 $PLATFORM $INI_MODE main.c -o $2 -lpthread -lsqlite3 -L./lib -lpac && echo "Application successfully compiled. Launch command: sudo ./"$2
+	gcc -D_REENTRANT -DSQLITE_THREADSAFE=2 -DSQLITE_OMIT_LOAD_EXTENSION $1 $3 $PLATFORM $INI_MODE main.c -o $2 $DEBUG_PARAM -lpthread -lsqlite3 -L./lib -lpac && echo "Application successfully compiled. Launch command: sudo ./"$2
 }
 
 function full {
+	DEBUG_PARAM=$NONE
 	build $NONE $APP $MODE_FULL && \
 	build $MODE_DEBUG $APP_DBG $MODE_FULL && \
 	move_bin && move_bin_dbg && move_conf && conf_autostart
 }
 function full_nc {
+	DEBUG_PARAM=$NONE
 	build $NONE $APP $MODE_FULL && \
 	build $MODE_DEBUG $APP_DBG $MODE_FULL  && \
 	move_bin && move_bin_dbg

@@ -144,5 +144,7 @@ extern int unlockMutex(Mutex *item);
 
 extern void waitThreadCmd(char *thread_cmd, char *thread_qfr, char *cmd);
 
+extern void skipLine(FILE* stream);
+
 #endif 
 
