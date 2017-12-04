@@ -23,10 +23,22 @@
 #define LOW 0
 #define HIGH 1
 
+
+#ifdef CPU_ALLWINNER_A20
+#define PUD_OFF 0
+#define PUD_DOWN 2
+#define PUD_UP 1
+#else
+#ifdef CPU_ALLWINNER_H3
+#define PUD_OFF 0
+#define PUD_DOWN 2
+#define PUD_UP 1
+#else
 #define PUD_OFF 0
 #define PUD_DOWN 1
 #define PUD_UP 2
-
+#endif
+#endif
 
 #define MODE_IN_STR "in"
 #define MODE_OUT_STR "out"

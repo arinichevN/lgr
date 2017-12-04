@@ -71,7 +71,7 @@ int sendBuf(void *buf, size_t buf_size, int fd, struct sockaddr *addr, socklen_t
     n=sendto(fd, buf, buf_size, 0, addr, addr_len);
     if (n < 0) {
 #ifdef MODE_DEBUG
-        perror("sendBuf: error writing to socket");
+        perror("sendBuf");
 #endif
         return 0;
     }

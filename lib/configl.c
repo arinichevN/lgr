@@ -42,7 +42,6 @@ static int getPeerList_callback(void *data, int argc, char **argv, char **azColN
     PDLi.addr_size = sizeof PDLi.addr;
     PDLi.fd = PDLd;
     PDLi.active = 0;
-    PDLi.sock_buf_size = peer_data->sock_buf_size;
     if (!initMutex(&PDLi.mutex)) {
         fprintf(stderr, "getPeerList_callback: ERROR: initMutex() failed for peer with id=%s\n", PDLi.id);
         peer_data->list->length++;
@@ -100,7 +99,7 @@ static int getEM_callback(void *data, int argc, char **argv, char **azColName) {
     return 0;
 }
 
-int config_getPeerList(PeerList *list, int *fd, size_t sock_buf_size, const char *db_path) {
+int config_getPeerList(PeerList *list, int *fd, const char *db_path) {
     sqlite3 *db;
     if (!db_open(db_path, &db)) {
         return 0;
@@ -118,7 +117,7 @@ int config_getPeerList(PeerList *list, int *fd, size_t sock_buf_size, const char
         sqlite3_close(db);
         return 0;
     }
-    PeerData data = {.list=list, .fd=fd, .sock_buf_size=sock_buf_size};
+    PeerData data = {.list=list, .fd=fd};
     char *q = "select id, port, ip_addr FROM peer";
     if (!db_exec(db, q, getPeerList_callback, (void*) &data)) {
 #ifdef MODE_DEBUG
@@ -170,10 +169,10 @@ int config_getEM(EM *item, int em_id, const PeerList *pl, sqlite3 *db) {
     return 1;
 }
 
-int config_getPeer(Peer *item, char * peer_id, int *fd, size_t sock_buf_size, sqlite3 *db) {
+int config_getPeer(Peer *item, char * peer_id, int *fd, sqlite3 *db) {
     char q[LINE_SIZE];
     PeerList pl = {.item = item, .length = 0};
-    PeerData data = {.list=&pl, .fd=fd, .sock_buf_size=sock_buf_size};
+    PeerData data = {.list=&pl, .fd=fd};
     memset(item, 0, sizeof *item);
     snprintf(q, sizeof q, "SELECT id, port, ip_addr FROM peer where id='%s'", peer_id);
     if (!db_exec(db, q, getPeerList_callback, (void*) &data)) {

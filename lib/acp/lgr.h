@@ -1,12 +1,7 @@
 
-#ifndef LIBPAS_LGR_H
-#define LIBPAS_LGR_H
+#ifndef LIBPAS_ACP_LGR_H
+#define LIBPAS_ACP_LGR_H
 
-#define ACP_CMD_LGR_PROG_GET_DATA_INIT 'q'
-#define ACP_CMD_LGR_PROG_GET_DATA_RUNTIME 'r'
-
-#define ACP_CMD_LGR_PROG_ENABLE 'x'
-#define ACP_CMD_LGR_PROG_DISABLE 'y'
 
 #endif 
 

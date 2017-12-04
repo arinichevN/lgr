@@ -77,7 +77,7 @@ struct timespec getTimeRestR(const Prog *item) {
     return out;
 }
 
-int bufCatProgInit(const Prog *item, char *buf, size_t buf_size) {
+int bufCatProgInit(const Prog *item, ACPResponse *response) {
     char q[LINE_SIZE];
     snprintf(q, sizeof q, "%d" ACP_DELIMITER_COLUMN_STR "%ld" ACP_DELIMITER_COLUMN_STR "%d" ACP_DELIMITER_ROW_STR,
             item->id,
@@ -85,13 +85,10 @@ int bufCatProgInit(const Prog *item, char *buf, size_t buf_size) {
             item->max_rows
             );
 
-    if (bufCat(buf, q, buf_size) == NULL) {
-        return 0;
-    }
-    return 1;
+    return acp_responseStrCat(response, q);
 }
 
-int bufCatProgRuntime(const Prog *item, char *buf, size_t buf_size) {
+int bufCatProgRuntime(const Prog *item, ACPResponse *response) {
     char q[LINE_SIZE];
     char *state = getStateStr(item->state);
     struct timespec tm_rest = getTimeRestR(item);
@@ -100,67 +97,40 @@ int bufCatProgRuntime(const Prog *item, char *buf, size_t buf_size) {
             state,
             tm_rest.tv_sec
             );
-    if (bufCat(buf, q, buf_size) == NULL) {
-        return 0;
-    }
-    return 1;
+    return acp_responseStrCat(response, q);
 }
 
-int sendStrPack(char qnf, char *cmd) {
-    extern Peer peer_client;
-    return acp_sendStrPack(qnf, cmd, &peer_client);
-}
 
-int sendBufPack(char *buf, char qnf, char *cmd_str) {
-    extern Peer peer_client;
-    return acp_sendBufPack(buf, qnf, cmd_str, &peer_client);
-}
 
-void waitThread_ctl(char cmd) {
-    thread_cmd = cmd;
-    pthread_join(thread, NULL);
-}
-
-void sendStr(const char *s, uint8_t *crc) {
-    acp_sendStr(s, crc, &peer_client);
-}
-
-void sendFooter(int8_t crc) {
-    acp_sendFooter(crc, &peer_client);
-}
-
-void printAll() {
+void printData(ACPResponse *response) {
     char q[LINE_SIZE];
-    uint8_t crc = 0;
     size_t i;
     snprintf(q, sizeof q, "CONFIG_FILE: %s\n", CONFIG_FILE);
-    sendStr(q, &crc);
+    SEND_STR(q)
     snprintf(q, sizeof q, "port: %d\n", sock_port);
-    sendStr(q, &crc);
+    SEND_STR(q)
     snprintf(q, sizeof q, "pid_path: %s\n", pid_path);
-    sendStr(q, &crc);
-    snprintf(q, sizeof q, "sock_buf_size: %d\n", sock_buf_size);
-    sendStr(q, &crc);
+    SEND_STR(q)
     snprintf(q, sizeof q, "cycle_duration sec: %ld\n", cycle_duration.tv_sec);
-    sendStr(q, &crc);
+    SEND_STR(q)
     snprintf(q, sizeof q, "cycle_duration nsec: %ld\n", cycle_duration.tv_nsec);
-    sendStr(q, &crc);
+    SEND_STR(q)
     snprintf(q, sizeof q, "db_data_path: %s\n", db_data_path);
-    sendStr(q, &crc);
+    SEND_STR(q)
     snprintf(q, sizeof q, "db_public_path: %s\n", db_public_path);
-    sendStr(q, &crc);
+    SEND_STR(q)
     snprintf(q, sizeof q, "db_log_path: %s\n", db_log_path);
-    sendStr(q, &crc);
+    SEND_STR(q)
     snprintf(q, sizeof q, "app_state: %s\n", getAppState(app_state));
-    sendStr(q, &crc);
+    SEND_STR(q)
     snprintf(q, sizeof q, "PID: %d\n", proc_id);
-    sendStr(q, &crc);
+    SEND_STR(q)
 
-    sendStr("+-------------------------------------------------------------------------------------------------+\n", &crc);
-    sendStr("|                                                Peer                                             |\n", &crc);
-    sendStr("+--------------------------------+-----------+----------------+-----------+-----------+-----------+\n", &crc);
-    sendStr("|               id               |  sin_port |      addr      |     fd    |  active   |   link    |\n", &crc);
-    sendStr("+--------------------------------+-----------+----------------+-----------+-----------+-----------+\n", &crc);
+    SEND_STR("+-------------------------------------------------------------------------------------------------+\n")
+    SEND_STR("|                                                Peer                                             |\n")
+    SEND_STR("+--------------------------------+-----------+----------------+-----------+-----------+-----------+\n")
+    SEND_STR("|               id               |  sin_port |      addr      |     fd    |  active   |   link    |\n")
+    SEND_STR("+--------------------------------+-----------+----------------+-----------+-----------+-----------+\n")
     for (i = 0; i < peer_list.length; i++) {
         snprintf(q, sizeof q, "|%32s|%11u|%16u|%11d|%11d|%11p|\n",
                 peer_list.item[i].id,
@@ -170,15 +140,15 @@ void printAll() {
                 peer_list.item[i].active,
                 (void *)&peer_list.item[i]
                 );
-        sendStr(q, &crc);
+        SEND_STR(q)
     }
-    sendStr("+--------------------------------+-----------+----------------+-----------+-----------+-----------+\n", &crc);
+    SEND_STR("+--------------------------------+-----------+----------------+-----------+-----------+-----------+\n")
 
-    sendStr("+-----------------------------------------------------------------------------------+\n", &crc);
-    sendStr("|                                      Program                                      |\n", &crc);
-    sendStr("+-----------+-----------+-----------+-----------+-----------+-----------+-----------+\n", &crc);
-    sendStr("|     id    |   kind    | interval  | row_count |    link   | sensor_ptr| time_rest |\n", &crc);
-    sendStr("+-----------+-----------+-----------+-----------+-----------+-----------+-----------+\n", &crc);
+    SEND_STR("+-----------------------------------------------------------------------------------+\n")
+    SEND_STR("|                                      Program                                      |\n")
+    SEND_STR("+-----------+-----------+-----------+-----------+-----------+-----------+-----------+\n")
+    SEND_STR("|     id    |   kind    | interval  | row_count |    link   | sensor_ptr| time_rest |\n")
+    SEND_STR("+-----------+-----------+-----------+-----------+-----------+-----------+-----------+\n")
     PROG_LIST_LOOP_DF
     PROG_LIST_LOOP_ST
             struct timespec tm_rest = getTimeRest_ts(curr->interval_min, curr->tmr.start);
@@ -191,42 +161,39 @@ void printAll() {
             (void *) &curr->sensor_fts,
             tm_rest.tv_sec
             );
-    sendStr(q, &crc);
+    SEND_STR(q)
     PROG_LIST_LOOP_SP
-    sendStr("+-----------+-----------+-----------+-----------+-----------+-----------+-----------+\n", &crc);
+    SEND_STR_L("+-----------+-----------+-----------+-----------+-----------+-----------+-----------+\n")
 
-    sendFooter(crc);
 }
 
-void printHelp() {
+void printHelp(ACPResponse *response) {
     char q[LINE_SIZE];
-    uint8_t crc = 0;
-    sendStr("COMMAND LIST\n", &crc);
-    snprintf(q, sizeof q, "%c\tput process into active mode; process will read configuration\n", ACP_CMD_APP_START);
-    sendStr(q, &crc);
-    snprintf(q, sizeof q, "%c\tput process into standby mode; all running programs will be stopped\n", ACP_CMD_APP_STOP);
-    sendStr(q, &crc);
-    snprintf(q, sizeof q, "%c\tfirst put process in standby and then in active mode\n", ACP_CMD_APP_RESET);
-    sendStr(q, &crc);
-    snprintf(q, sizeof q, "%c\tterminate process\n", ACP_CMD_APP_EXIT);
-    sendStr(q, &crc);
-    snprintf(q, sizeof q, "%c\tget state of process; response: B - process is in active mode, I - process is in standby mode\n", ACP_CMD_APP_PING);
-    sendStr(q, &crc);
-    snprintf(q, sizeof q, "%c\tget some variable's values; response will be packed into multiple packets\n", ACP_CMD_APP_PRINT);
-    sendStr(q, &crc);
-    snprintf(q, sizeof q, "%c\tget this help; response will be packed into multiple packets\n", ACP_CMD_APP_HELP);
-    sendStr(q, &crc);
-    snprintf(q, sizeof q, "%c\tload program into RAM and start its execution; program id expected if '.' quantifier is used\n", ACP_CMD_START);
-    sendStr(q, &crc);
-    snprintf(q, sizeof q, "%c\tunload program from RAM; program id expected if '.' quantifier is used\n", ACP_CMD_STOP);
-    sendStr(q, &crc);
-    snprintf(q, sizeof q, "%c\tunload program from RAM and then load it again; program id expected if '.' quantifier is used\n", ACP_CMD_RESET);
-    sendStr(q, &crc);
-    snprintf(q, sizeof q, "%c\tenable running program; program id expected if '.' quantifier is used\n", ACP_CMD_LGR_PROG_ENABLE);
-    sendStr(q, &crc);
-    snprintf(q, sizeof q, "%c\tdisable running program; program id expected if '.' quantifier is used\n", ACP_CMD_LGR_PROG_DISABLE);
-    sendStr(q, &crc);
-    snprintf(q, sizeof q, "%c\tget program info; response format: id_intervalSec_rowCount; program id expected if '.' quantifier is used\n", ACP_CMD_LGR_PROG_GET_DATA_INIT);
-    sendStr(q, &crc);
-    sendFooter(crc);
+    SEND_STR("COMMAND LIST\n")
+    snprintf(q, sizeof q, "%s\tput process into active mode; process will read configuration\n", ACP_CMD_APP_START);
+    SEND_STR(q)
+    snprintf(q, sizeof q, "%s\tput process into standby mode; all running programs will be stopped\n", ACP_CMD_APP_STOP);
+    SEND_STR(q)
+    snprintf(q, sizeof q, "%s\tfirst put process in standby and then in active mode\n", ACP_CMD_APP_RESET);
+    SEND_STR(q)
+    snprintf(q, sizeof q, "%s\tterminate process\n", ACP_CMD_APP_EXIT);
+    SEND_STR(q)
+    snprintf(q, sizeof q, "%s\tget state of process; response: B - process is in active mode, I - process is in standby mode\n", ACP_CMD_APP_PING);
+    SEND_STR(q)
+    snprintf(q, sizeof q, "%s\tget some variable's values; response will be packed into multiple packets\n", ACP_CMD_APP_PRINT);
+    SEND_STR(q)
+    snprintf(q, sizeof q, "%s\tget this help; response will be packed into multiple packets\n", ACP_CMD_APP_HELP);
+    SEND_STR(q)
+    snprintf(q, sizeof q, "%s\tload program into RAM and start its execution; program id expected\n", ACP_CMD_PROG_START);
+    SEND_STR(q)
+    snprintf(q, sizeof q, "%s\tunload program from RAM; program id expected\n", ACP_CMD_PROG_STOP);
+    SEND_STR(q)
+    snprintf(q, sizeof q, "%s\tunload program from RAM and then load it again; program id expected\n", ACP_CMD_PROG_RESET);
+    SEND_STR(q)
+    snprintf(q, sizeof q, "%s\tenable running program; program id expected\n", ACP_CMD_PROG_ENABLE);
+    SEND_STR(q)
+    snprintf(q, sizeof q, "%s\tdisable running program; program id expected\n", ACP_CMD_PROG_DISABLE);
+    SEND_STR(q)
+    snprintf(q, sizeof q, "%s\tget program info; response format: id_intervalSec_rowCount; program id expected\n", ACP_CMD_PROG_GET_DATA_INIT);
+    SEND_STR_L(q)
 }

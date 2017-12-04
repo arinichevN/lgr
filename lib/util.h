@@ -10,5 +10,7 @@ extern void strnline(char **v) ;
 
 extern char * bufCat(char * buf, const char * str, size_t size);
 
+extern char * estostr(char *s);
+
 #endif 
 

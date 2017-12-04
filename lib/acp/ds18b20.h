@@ -11,8 +11,5 @@
 #define ACP_DS18B20_RESP_BUF_SIZE_MIN 15UL
 
 
-#define ACP_CMD_DS18B20_GET_RESOLUTION 'p'
-
-
 #endif 
 

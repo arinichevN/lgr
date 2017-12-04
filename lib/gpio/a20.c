@@ -8,9 +8,11 @@
 #define GPIO_READ(ADDR) *(gpio + (((ADDR) - ((ADDR) & ~MAP_MASK)) >> 2))
 #define GPIO_WRITE(VAL, ADDR) *(gpio + (((ADDR) - ((ADDR) & ~MAP_MASK)) >> 2)) = (VAL)
 
-static volatile uint32_t *gpio;
+#define PUD_OFF 0
+#define PUD_DOWN 2
+#define PUD_UP 1
 
-int gpio_fd;
+static volatile uint32_t *gpio;
 
 static int physToGpio[GPIO_NUM] = {
     -1, // 0
@@ -122,7 +124,7 @@ void pinPUD(int pin, int pud) {
 void makeGpioDataOffset() {
     int i, pin;
     for (i = 0; i < GPIO_NUM; i++) {
-        pin = physToGpio[i]; //WPI_MODE_PHYS
+        pin = physToGpio[i];
         if (-1 == pin) {
             gpio_data_seek[i] = 0;
             gpio_data_bank[i] = 0;
@@ -166,19 +168,18 @@ int checkPin(int pin) {
 }
 
 int gpioSetup() {
-    // Open the master /dev/memory device
-    int gpio_fd;
-    if ((gpio_fd = open("/dev/mem", O_RDWR | O_SYNC | O_CLOEXEC)) < 0) {
+    int fd;
+    if ((fd = open("/dev/mem", O_RDWR | O_SYNC | O_CLOEXEC)) < 0) {
         fputs("gpioSetup: Unable to open /dev/mem\n", stderr);
         return 0;
     }
-    // GPIO:
-    gpio = (volatile uint32_t *) mmap(0, BLOCK_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, gpio_fd, CCU_BASE);
+    gpio = (volatile uint32_t *) mmap(0, BLOCK_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, CCU_BASE);
+    close(fd);
     if (gpio == MAP_FAILED) {
         fputs("gpioSetup: mmap failed\n", stderr);
         return 0;
     }
-    close(gpio_fd);
+    
     makeGpioDataOffset();
     return 1;
 }

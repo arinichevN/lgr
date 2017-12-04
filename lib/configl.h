@@ -11,7 +11,6 @@
 typedef struct {
     PeerList *list;
     int *fd;
-    size_t sock_buf_size;
 } PeerData;
 
 typedef struct {
@@ -24,9 +23,9 @@ typedef struct {
     const PeerList *peer_list;
 } EMData;
 
-extern int config_getPeerList(PeerList *list, int *fd, size_t sock_buf_size, const char *db_path);
+extern int config_getPeerList(PeerList *list, int *fd,  const char *db_path);
 
-extern int config_getPeer(Peer *item, char * peer_id, int *fd, size_t sock_buf_size, sqlite3 *db);
+extern int config_getPeer(Peer *item, char * peer_id, int *fd, sqlite3 *db);
 
 extern int config_getSensorFTS(SensorFTS *item, int sensor_id, const PeerList *pl, sqlite3 *db);
 

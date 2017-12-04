@@ -1,17 +1,15 @@
 #include "lck.h"
 
-void acp_lck_waitUnlock(Peer *item, unsigned int interval_us) {
+void acp_lck_waitUnlock(Peer *peer, unsigned int interval_us) {
     char state = 1;
-    char cmd_unlock[1] = {ACP_CMD_LCK_UNLOCK};
-    char cmd_check[1] = {ACP_CMD_LCK_GET_DATA};
     while (1) {
         switch (state) {
             case 1:
 #ifdef MODE_DEBUG
                 puts("acp_waitUnlock: sending ping request to locker...");
 #endif
-                acp_pingPeer(item);
-                if (item->active) {
+                acp_pingPeer(peer);
+                if (peer->active) {
                     state = 2;
                 }
                 break;
@@ -19,7 +17,7 @@ void acp_lck_waitUnlock(Peer *item, unsigned int interval_us) {
 #ifdef MODE_DEBUG
                 puts("acp_waitUnlock: sending unlock request to locker...");
 #endif
-                if (acp_sendStrPack(ACP_QUANTIFIER_BROADCAST, cmd_unlock, item)) {
+                if (acp_requestSendUnrequitedCmd(ACP_CMD_LCK_UNLOCK, peer)) {
                     state = 3;
                 }
                 break;
@@ -29,7 +27,7 @@ void acp_lck_waitUnlock(Peer *item, unsigned int interval_us) {
                 puts("acp_waitUnlock: checking locker to be unlocked...");
 #endif
                 int locked = 1;
-                if (acp_sendCmdGetInt(item, cmd_check, &locked)) {
+                if (acp_sendCmdGetInt(peer, ACP_CMD_GET_DATA, &locked)) {
                     if (!locked) {
                         state = 4;
                     }
@@ -47,7 +45,6 @@ void acp_lck_waitUnlock(Peer *item, unsigned int interval_us) {
     }
 }
 
-void acp_lck_lock(Peer *item) {
-    char cmd_unlock[1] = {ACP_CMD_LCK_LOCK};
-    acp_sendStrPack(ACP_QUANTIFIER_BROADCAST, cmd_unlock, item);
+void acp_lck_lock(Peer *peer) {
+    acp_requestSendUnrequitedCmd(ACP_CMD_LCK_LOCK, peer);
 }

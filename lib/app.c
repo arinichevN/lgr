@@ -216,14 +216,6 @@ int unlockMutex(Mutex *item) {
     return 1;
 }
 
-void waitThreadCmd(char *thread_cmd, char *thread_qfr, char *cmd) {
-    struct timespec time_r, time_w = {0, 10000};
-    *thread_qfr = cmd[0];
-    *thread_cmd = cmd[1];
-    while (*thread_cmd != ACP_CMD_APP_NO) {
-        nanosleep(&time_w, &time_r);
-    }
-}
 
 void skipLine(FILE* stream) {
     int x;
@@ -233,4 +225,15 @@ void skipLine(FILE* stream) {
             break;
         }
     }
+}
+
+int createThread(pthread_t *new_thread,void *(*thread_routine) (void *),char *cmd) {
+    *cmd = 0;
+    if (pthread_create(new_thread, NULL, thread_routine, (void *) cmd) != 0) {
+#ifdef MODE_DEBUG
+        perror("createThread");
+#endif
+        return 0;
+    }
+    return 1;
 }

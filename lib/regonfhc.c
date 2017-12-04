@@ -12,6 +12,9 @@ static void controlEM(RegOnfHCEM *item, float output) {
 void regonfhc_control(RegOnfHC *item) {
     switch (item->state) {
         case REG_INIT:
+            if (!acp_readSensorFTS(&item->sensor)) {
+                return;
+            }
             item->tmr.ready = 0;
             item->state_r = REG_HEATER;
             controlEM(&item->heater, 0.0f);
@@ -21,13 +24,11 @@ void regonfhc_control(RegOnfHC *item) {
             item->state_onf = REG_WAIT;
             item->state = REG_BUSY;
             if (item->heater.use && item->cooler.use) {
-                if (acp_readSensorFTS(&item->sensor)) {
                     if (SNSR_VAL > item->goal) {
                         item->state_r = REG_COOLER;
                     } else {
                         item->state_r = REG_HEATER;
                     }
-                }
             } else if (item->heater.use && !item->cooler.use) {
                 item->state_r = REG_HEATER;
             } else if (!item->heater.use && item->cooler.use) {

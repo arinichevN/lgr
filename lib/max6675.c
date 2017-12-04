@@ -14,6 +14,7 @@ int max6675_init(int sclk, int cs, int miso) {
     pinModeOut(cs);
     pinModeOut(sclk);
     pinModeIn(miso);
+    pinPUD(miso, PUD_DOWN);
     pinHigh(cs);
     return 1;
 }

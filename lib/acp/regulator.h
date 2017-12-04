@@ -1,16 +1,20 @@
 #ifndef LIBPAS_ACP_REGULATOR_H
 #define LIBPAS_ACP_REGULATOR_H
 
+#define ACP_CMD_REG_PROG_TUNE "rptune"
+#define ACP_CMD_REG_PROG_SWITCH "rpswitch"
+#define ACP_CMD_REG_PROG_GET_STATE "rpgst"
+#define ACP_CMD_REG_PROG_GET_STATE_STSP "rpgstsp"
 
-#define ACP_CMD_REG_PROG_START 'a'
-#define ACP_CMD_REG_PROG_STOP 'b'
-#define ACP_CMD_REG_PROG_TUNE 'c'
-#define ACP_CMD_REG_PROG_ADD 'd'
-#define ACP_CMD_REG_PROG_DELETE 'e'
-#define ACP_CMD_REG_PROG_SWITCH 'f'
-#define ACP_CMD_REG_PROG_GET_STATE 'g'
-#define ACP_CMD_REG_PROG_GET_STATE_STSP 'h'
-#define ACP_CMD_REG_PROG_GET_RUNTIME 'i'
+#define ACP_CMD_REG_PROG_SET_GOAL "rpsgoal"
+#define ACP_CMD_REG_PROG_SET_HEATER_POWER "rpshp"
+#define ACP_CMD_REG_PROG_SET_COOLER_POWER "rpscp"
+#define ACP_CMD_REG_PROG_SET_EM_MODE "rpsemm"
+#define ACP_CMD_REG_PROG_SET_GOAL "rpsgoal"
+#define ACP_CMD_REG_PROG_SET_CHANGE_GAP "rpschgap"
+
+#define ACP_CMD_REG_PROG_SET_COOLER_MODE "rpscm"
+#define ACP_CMD_REG_PROG_SET_HEATER_MODE "rpshm"
 
 
 #endif
