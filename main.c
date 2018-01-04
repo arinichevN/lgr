@@ -1,10 +1,4 @@
-/*
- * lgr
- */
-
 #include "main.h"
-
-char pid_path[LINE_SIZE];
 
 int app_state = APP_INIT;
 
@@ -12,9 +6,6 @@ char db_data_path[LINE_SIZE];
 char db_log_path[LINE_SIZE];
 char db_public_path[LINE_SIZE];
 
-
-int pid_file = -1;
-int proc_id;
 int sock_port = -1;
 int sock_fd = -1;
 int sock_fd_tf = -1;
@@ -43,9 +34,8 @@ int readSettings() {
     }
     skipLine(stream);
     int n;
-    n = fscanf(stream, "%d\t%255s\t%ld\t%ld\t%u\t%255s\t%255s\t%255s\n",
+    n = fscanf(stream, "%d\t%ld\t%ld\t%u\t%255s\t%255s\t%255s\n",
             &sock_port,
-            pid_path,
             &cycle_duration.tv_sec,
             &cycle_duration.tv_nsec,
             &retry_max,
@@ -53,7 +43,7 @@ int readSettings() {
             db_public_path,
             db_log_path
             );
-    if (n != 8) {
+    if (n != 7) {
         fclose(stream);
 #ifdef MODE_DEBUG
         fputs("ERROR: readSettings: bad row format\n", stderr);
@@ -62,7 +52,7 @@ int readSettings() {
     }
     fclose(stream);
 #ifdef MODE_DEBUG
-    printf("readSettings: \n\tsock_port: %d, \n\tpid_path: %s, \n\tcycle_duration: %ld sec %ld nsec, \n\tretry_max: %u, \n\tdb_data_path: %s, \n\tdb_public_path: %s, \n\tdb_log_path: %s\n", sock_port, pid_path, cycle_duration.tv_sec, cycle_duration.tv_nsec, retry_max, db_data_path, db_public_path, db_log_path);
+    printf("readSettings: \n\tsock_port: %d, \n\tcycle_duration: %ld sec %ld nsec, \n\tretry_max: %u, \n\tdb_data_path: %s, \n\tdb_public_path: %s, \n\tdb_log_path: %s\n", sock_port, cycle_duration.tv_sec, cycle_duration.tv_nsec, retry_max, db_data_path, db_public_path, db_log_path);
 #endif
     return 1;
 }
@@ -94,9 +84,6 @@ int initData() {
 void initApp() {
     if (!readSettings()) {
         exit_nicely_e("initApp: failed to read settings\n");
-    }
-    if (!initPid(&pid_file, &proc_id, pid_path)) {
-        exit_nicely_e("initApp: failed to initialize pid\n");
     }
     if (!initMutex(&progl_mutex)) {
         exit_nicely_e("initApp: failed to initialize mutex\n");
@@ -429,10 +416,6 @@ void freeApp() {
     freeSocketFd(&sock_fd_tf);
 #ifdef MODE_DEBUG
     puts(" sock_fd_tf: done");
-#endif
-    freePid(&pid_file, &proc_id, pid_path);
-#ifdef MODE_DEBUG
-    puts(" freePid: done");
 #endif
 #ifdef MODE_DEBUG
     puts(" done");

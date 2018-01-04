@@ -37,6 +37,8 @@ extern void regpidonfhc_enable(RegPIDOnfHC *item);
 
 extern void regpidonfhc_disable(RegPIDOnfHC *item);
 
+extern int regpidonfhc_getEnabled(const RegPIDOnfHC *item);
+
 extern void regpidonfhc_setCoolerDelta(RegPIDOnfHC *item, float value);
 
 extern void regpidonfhc_setHeaterDelta(RegPIDOnfHC *item, float value);

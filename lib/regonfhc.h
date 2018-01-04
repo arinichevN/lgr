@@ -34,6 +34,8 @@ extern void regonfhc_enable(RegOnfHC *item);
 
 extern void regonfhc_disable(RegOnfHC *item);
 
+extern int regonfhc_getEnabled(const RegOnfHC *item);
+
 extern void regonfhc_setCoolerDelta(RegOnfHC *item, float value);
 
 extern void regonfhc_setHeaterDelta(RegOnfHC *item, float value);

@@ -5,6 +5,7 @@
 #define ACP_CMD_REG_PROG_SWITCH "rpswitch"
 #define ACP_CMD_REG_PROG_GET_STATE "rpgst"
 #define ACP_CMD_REG_PROG_GET_STATE_STSP "rpgstsp"
+#define ACP_CMD_REG_PROG_GET_GOAL "rpggoal"
 
 #define ACP_CMD_REG_PROG_SET_GOAL "rpsgoal"
 #define ACP_CMD_REG_PROG_SET_HEATER_POWER "rpshp"

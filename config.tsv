@@ -1,2 +1,2 @@
-port	PID_path 	cycle_duration_sec	cycle_duration_nsec	retry_count	private_db_file	public_db_file	log_db_file
-49172	/var/run/lgr.pid	1	5000000	7	/etc/controller/lgr/data.db	/etc/controller/public.db	/etc/controller/log.db
+port	cycle_duration_sec	cycle_duration_nsec	retry_count	private_db_file	public_db_file	log_db_file
+49172	1	5000000	7	/etc/controller/lgr/data.db	/etc/controller/public.db	/etc/controller/log.db

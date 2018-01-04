@@ -181,7 +181,7 @@ void regpidonfhc_control(RegPIDOnfHC *item) {
         case REG_OFF:
             break;
         default:
-            item->state = REG_INIT;
+            item->state = REG_OFF;
             break;
     }
 #ifdef MODE_DEBUG
@@ -199,6 +199,13 @@ void regpidonfhc_enable(RegPIDOnfHC *item) {
 
 void regpidonfhc_disable(RegPIDOnfHC *item) {
     item->state = REG_DISABLE;
+}
+
+int regpidonfhc_getEnabled(const RegPIDOnfHC *item) {
+    if(item->state==REG_DISABLE || item->state==REG_OFF){
+        return 0;
+    }
+    return 1;
 }
 
 void regpidonfhc_setCoolerDelta(RegPIDOnfHC *item, float value) {

@@ -8,7 +8,7 @@
 #define ACP_CMD_SET_FLOAT "sf"
 #define ACP_CMD_SET_INT "si"
 
-#define ACP_CMD_SET_DUTY_CYCLE_PWM "sdcpwm"
+#define ACP_CMD_SET_PWM_DUTY_CYCLE "sdcpwm"
 #define ACP_CMD_SET_DUTY_CYCLE_PM "sdcpm"
 #define ACP_CMD_SET_PWM_PERIOD "spwmp"
 #define ACP_CMD_SET_PM_DUTY_TIME_MIN "spmdtm" 

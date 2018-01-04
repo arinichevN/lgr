@@ -85,7 +85,7 @@ void regpidonf_control(RegPIDOnf *item) {
         case REG_OFF:
             break;
         default:
-            item->state = REG_INIT;
+            item->state = REG_OFF;
             break;
     }
 #ifdef MODE_DEBUG
@@ -104,6 +104,12 @@ void regpidonf_disable(RegPIDOnf *item) {
     item->state = REG_DISABLE;
 }
 
+int regpidonf_getEnabled(const RegPIDOnf *item) {
+    if(item->state==REG_DISABLE || item->state==REG_OFF){
+        return 0;
+    }
+    return 1;
+}
 void regpidonf_setDelta(RegPIDOnf *item, float value) {
     item->delta = value;
     if (item->state == REG_BUSY && item->mode == REG_MODE_ONF && item->state_r == REG_HEATER) {

@@ -1,10 +1,11 @@
 //Allwinner A20 CPU
+#include "pinout.h"
 #define PIO_BASE (0x01C20800) 
 #define CCU_BASE    (0x01C20000) 
 #define MAP_SIZE (4096*2)
 #define MAP_MASK (MAP_SIZE - 1)
 #define BLOCK_SIZE  (4*1024)
-#define GPIO_NUM  64
+
 #define GPIO_READ(ADDR) *(gpio + (((ADDR) - ((ADDR) & ~MAP_MASK)) >> 2))
 #define GPIO_WRITE(VAL, ADDR) *(gpio + (((ADDR) - ((ADDR) & ~MAP_MASK)) >> 2)) = (VAL)
 
@@ -14,37 +15,13 @@
 
 static volatile uint32_t *gpio;
 
-static int physToGpio[GPIO_NUM] = {
-    -1, // 0
-    -1, -1, //1, 2
-    53, -1, //3, 4
-    52, -1, //5, 6
-    226, 228, //7, 8
-    -1, 229, //9, 10
-    275, 259, //11, 12
-    274, -1, //13, 14
-    273, 244, //15, 16
-    -1, 245, //17, 18
-    268, -1, //19, 20
-    269, 272, //21, 22
-    267, 266, //23, 24
-    -1, 270, //25, 26
-    257, 256, //27, 28
-    35, -1, //29, 30
-    277, 276, //31, 32
-    45, -1, //33, 34
-    39, 38, //35, 36
-    37, 44, //37, 38
-    -1, 40, //39, 40
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, //41-> 55
-    -1, -1, -1, -1, -1, -1, -1, -1 // 56-> 63
-};
-static uint32_t gpio_data_seek [GPIO_NUM];
-static int gpio_data_bank [GPIO_NUM];
-static int gpio_data_index [GPIO_NUM];
 
-static uint32_t gpio_data_mode_seek [GPIO_NUM];
-static int gpio_data_mode_offset [GPIO_NUM];
+static uint32_t gpio_data_seek [PIN_NUM];
+static int gpio_data_bank [PIN_NUM];
+static int gpio_data_index [PIN_NUM];
+
+static uint32_t gpio_data_mode_seek [PIN_NUM];
+static int gpio_data_mode_offset [PIN_NUM];
 
 static int pin_mask[9][32] = //[BANK]  [INDEX]
 {
@@ -123,7 +100,7 @@ void pinPUD(int pin, int pud) {
 
 void makeGpioDataOffset() {
     int i, pin;
-    for (i = 0; i < GPIO_NUM; i++) {
+    for (i = 0; i < PIN_NUM; i++) {
         pin = physToGpio[i];
         if (-1 == pin) {
             gpio_data_seek[i] = 0;
@@ -158,7 +135,7 @@ void makeGpioDataOffset() {
 }
 
 int checkPin(int pin) {
-    if (pin < 0 || pin >= GPIO_NUM) {
+    if (pin < 0 || pin >= PIN_NUM) {
         return 0;
     }
     if (physToGpio[pin] == -1) {

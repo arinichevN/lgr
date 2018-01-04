@@ -53,7 +53,7 @@ typedef struct {
     Mutex mutex;
 } Peer;
 
-DEF_LIST(Peer)
+DEC_LIST(Peer)
 
 typedef struct {
     char cmd[ACP_COMMAND_MAX_SIZE];
@@ -79,52 +79,56 @@ typedef struct {
 } ACPResponse;
 
 typedef int I1;
-DEF_LIST(I1)
-DEF_FUN_LIST_INIT(I1)
+DEC_LIST(I1)
+DEC_FUN_LIST_INIT(I1)
 
 typedef struct {
     int p0;
     int p1;
 } I2;
-DEF_LIST(I2)
-DEF_FUN_LIST_INIT(I2)
+DEC_LIST(I2)
+DEC_FUN_LIST_INIT(I2)
 
 typedef struct {
     int p0;
     int p1;
     int p2;
 } I3;
-DEF_LIST(I3)
-DEF_FUN_LIST_INIT(I3)
+DEC_LIST(I3)
+DEC_FUN_LIST_INIT(I3)
         
 typedef float F1;
-DEF_LIST(F1)
-DEF_FUN_LIST_INIT(F1)
+DEC_LIST(F1)
+DEC_FUN_LIST_INIT(F1)
+
+typedef double D1;
+DEC_LIST(D1)
+DEC_FUN_LIST_INIT(D1)
 
 typedef struct {
     int p0;
     float p1;
 } I1F1;
-DEF_LIST(I1F1)
-DEF_FUN_LIST_INIT(I1F1)
+DEC_LIST(I1F1)
+DEC_FUN_LIST_INIT(I1F1)
         
 typedef char S1;
-DEF_LIST(S1)
-DEF_FUN_LIST_INIT(S1)
+DEC_LIST(S1)
+DEC_FUN_LIST_INIT(S1)
 
 typedef struct {
     int p0;
     char p1[LINE_SIZE];
 } I1S1;
-DEF_LIST(I1S1)
-DEF_FUN_LIST_INIT(I1S1)
+DEC_LIST(I1S1)
+DEC_FUN_LIST_INIT(I1S1)
 
 typedef struct {
     char p0[LINE_SIZE];
     char p1[LINE_SIZE];
 } S2;
-DEF_LIST(S2)
-DEF_FUN_LIST_INIT(S2)
+DEC_LIST(S2)
+DEC_FUN_LIST_INIT(S2)
 
 typedef struct {
     int id;
@@ -132,8 +136,8 @@ typedef struct {
     struct timespec tm;
     int state;
 } FTS;
-DEF_LIST(FTS)
-DEF_FUN_LIST_INIT(FTS)
+DEC_LIST(FTS)
+DEC_FUN_LIST_INIT(FTS)
 
 typedef struct {
     int id;
@@ -145,8 +149,8 @@ typedef struct {
     struct timespec interval_min;
     int last_return;
 } SensorInt;
-DEF_LIST(SensorInt)
-DEF_FUN_LIST_INIT(SensorInt)
+DEC_LIST(SensorInt)
+DEC_FUN_LIST_INIT(SensorInt)
 
 typedef struct {
     int id;
@@ -158,8 +162,8 @@ typedef struct {
     struct timespec interval_min;
     int last_return;
 } SensorFTS;
-DEF_LIST(SensorFTS)
-DEF_FUN_LIST_INIT(SensorFTS)
+DEC_LIST(SensorFTS)
+DEC_FUN_LIST_INIT(SensorFTS)
 
 typedef struct {
     int id;
@@ -169,40 +173,40 @@ typedef struct {
     float pwm_rsl; //max duty cycle value (see lib/pid.h PWM_RSL)
     Mutex mutex;
 } EM; //executive mechanism
-DEF_LIST(EM)
-DEF_FUN_LIST_INIT(EM)
+DEC_LIST(EM)
+DEC_FUN_LIST_INIT(EM)
         
 #define FUN_ACP_REQUEST_DATA_TO(T) void acp_requestDataTo ## T(ACPRequest *request, T *list, size_t list_max_size){\
 acp_dataTo ## T(request->data, list, list_max_size);\
 }
 
-#define DEF_FUN_ACP_REQUEST_DATA_TO(T) extern void acp_requestDataTo ## T(ACPRequest *request, T *list, size_t list_max_size);
+#define DEC_FUN_ACP_REQUEST_DATA_TO(T) extern void acp_requestDataTo ## T(ACPRequest *request, T *list, size_t list_max_size);
 
 #define ACP_CMD_IS(V) acp_cmdcmp(&request, V)
 #define ACP_REQUEST_CREATE ACPRequest request; acp_requestInit(&request);
 #define ACP_RESPONSE_CREATE ACPResponse response; acp_responseInit(&response);
         
-DEF_FUN_LIST_GET_BY_IDSTR(Peer)
+DEC_FUN_LIST_GET_BY_IDSTR(Peer)
 
-DEF_FUN_LIST_GET_BY_ID(SensorFTS)
+DEC_FUN_LIST_GET_BY_ID(SensorFTS)
 
-DEF_FUN_LIST_GET_BY_ID(EM)
+DEC_FUN_LIST_GET_BY_ID(EM)
 
-DEF_FUN_LOCK(SensorInt)
+DEC_FUN_LOCK(SensorInt)
 
-DEF_FUN_LOCK(SensorFTS)
+DEC_FUN_LOCK(SensorFTS)
 
-DEF_FUN_LOCK(Peer)
+DEC_FUN_LOCK(Peer)
 
-DEF_FUN_LOCK(EM)
+DEC_FUN_LOCK(EM)
 
-DEF_FUN_UNLOCK(SensorInt)
+DEC_FUN_UNLOCK(SensorInt)
 
-DEF_FUN_UNLOCK(SensorFTS)
+DEC_FUN_UNLOCK(SensorFTS)
 
-DEF_FUN_UNLOCK(Peer)
+DEC_FUN_UNLOCK(Peer)
 
-DEF_FUN_UNLOCK(EM)
+DEC_FUN_UNLOCK(EM)
         
 extern int acp_responseStrCat(ACPResponse *item, const char *str) ;
 
@@ -238,6 +242,8 @@ extern int acp_requestSendUnrequitedCmd(const char *cmd, Peer *peer) ;
 
 extern int acp_requestSendI1List(char *cmd, const I1List *data, ACPRequest *request, Peer *peer) ;
 
+extern int acp_requestSendI1F1List(char *cmd, const I1F1List *data, ACPRequest *request, Peer *peer);
+
 extern int acp_requestSendI2List(char *cmd, const I2List *data, ACPRequest *request, Peer *peer) ;
 
 extern int acp_requestSendS2List(char *cmd, const S2List *data, ACPRequest *request, Peer *peer) ;
@@ -245,6 +251,8 @@ extern int acp_requestSendS2List(char *cmd, const S2List *data, ACPRequest *requ
 extern int acp_requestSendS1List(char *cmd, const S1List *data, ACPRequest *request, Peer *peer) ;
 
 extern int acp_requestSendUnrequitedI1List(char *cmd, const I1List *data, Peer *peer) ;
+
+extern int acp_requestSendUnrequitedI1F1List(char *cmd, const I1F1List *data, Peer *peer);
 
 extern int acp_requestSendUnrequitedI2List(char *cmd, const I2List *data, Peer *peer) ;
 
@@ -270,6 +278,8 @@ extern int acp_readSensorInt(SensorInt *s) ;
 
 extern int acp_readSensorFTS(SensorFTS *s) ;
 
+extern int acp_getFTS(FTS *output, Peer *peer, int remote_id);
+
 extern void acp_pingPeer(Peer *item) ;
 
 extern void acp_pingPeerList(PeerList *list, struct timespec interval, struct timespec now) ;
@@ -277,6 +287,8 @@ extern void acp_pingPeerList(PeerList *list, struct timespec interval, struct ti
 extern int acp_responseSendCurTime(ACPResponse *item, Peer *peer) ;
 
 extern int acp_sendCmdGetInt(Peer *peer, char* cmd, int *output) ;
+
+extern int acp_sendCmdGetFloat(Peer *peer, char* cmd, float *output);
 
 extern int acp_responseFTSCat(int id, float value, struct timespec tm, int state, ACPResponse *response) ;
 
@@ -292,31 +304,31 @@ extern void acp_printI2(I2List *list) ;
 
 extern void acp_printI3(I3List *list) ;
 
-DEF_FUN_ACP_REQUEST_DATA_TO(I1List)
+DEC_FUN_ACP_REQUEST_DATA_TO(I1List)
 
 
-DEF_FUN_ACP_REQUEST_DATA_TO(I2List)
+DEC_FUN_ACP_REQUEST_DATA_TO(I2List)
 
 
-DEF_FUN_ACP_REQUEST_DATA_TO(I3List)
+DEC_FUN_ACP_REQUEST_DATA_TO(I3List)
 
 
-DEF_FUN_ACP_REQUEST_DATA_TO(F1List)
+DEC_FUN_ACP_REQUEST_DATA_TO(F1List)
 
 
-DEF_FUN_ACP_REQUEST_DATA_TO(I1F1List)
+DEC_FUN_ACP_REQUEST_DATA_TO(I1F1List)
 
 
-DEF_FUN_ACP_REQUEST_DATA_TO(S1List)
+DEC_FUN_ACP_REQUEST_DATA_TO(S1List)
 
 
-DEF_FUN_ACP_REQUEST_DATA_TO(I1S1List)
+DEC_FUN_ACP_REQUEST_DATA_TO(I1S1List)
 
 
-DEF_FUN_ACP_REQUEST_DATA_TO(FTSList)
+DEC_FUN_ACP_REQUEST_DATA_TO(FTSList)
 
 
-DEF_FUN_ACP_REQUEST_DATA_TO(S2List)
+DEC_FUN_ACP_REQUEST_DATA_TO(S2List)
 
 #endif 
 

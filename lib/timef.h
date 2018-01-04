@@ -82,6 +82,10 @@ extern void getDate(TOY *v_toy, int *wday, int *tod, int *y);
 
 extern int ton_ts(struct timespec interval, Ton_ts *t);
 
+extern void ton_ts_reset(Ton_ts *t);
+
+extern void ton_ts_touch(Ton_ts *t);
+
 extern struct timespec getTimePassed_tv(const Ton_ts *t);
 
 extern time_t getTimePassed(const Ton *t);

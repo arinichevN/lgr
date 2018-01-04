@@ -1,19 +1,13 @@
 //Allwinner H3 CPU
+
+#include "pinout.h"
+
 #define PIO_BASE (0x01C20800)
 #define CCU_BASE    (0x01C20000)
 #define MAP_SIZE (4096*2)
 #define MAP_MASK (MAP_SIZE - 1)
 #define BLOCK_SIZE  (4*1024)
 
-#ifdef PINOUT1
-#define PIN_NUM  27
-#else
-#ifdef PINOUT2
-#define PIN_NUM  41
-#else
-#define PIN_NUM  1
-#endif
-#endif
 
 #define MAP_OFFSET(ADDR) (((ADDR) - ((ADDR) & ~MAP_MASK)) >> 2)
 
@@ -31,54 +25,6 @@ int data_offset [PIN_NUM];
 int cfg_offset [PIN_NUM];
 int pull_offset [PIN_NUM];
 
-#ifdef PINOUT1
-//e.g. Orange Pi Zero
-int physToGpio[PIN_NUM] = {
-    -1, // 0
-    -1, -1, // 1, 2
-    12, -1, // 3, 4
-    11, -1, // 5, 6
-    6, 198, // 7, 8
-    -1, 199, // 9, 10
-    1, 7, //11, 12
-    0, -1, //13, 14
-    3, 19, //15, 16
-    -1, 18, //17, 18
-    15, -1, //19, 20
-    16, 2, //21, 22
-    14, 13, //23, 24
-    -1, 10 //25, 26
-};
-#else
-#ifdef PINOUT2
-int physToGpio[PIN_NUM] = {
-    -1, // 0
-    -1, -1, // 1, 2
-    12, -1, // 3, 4
-    11, -1, // 5, 6
-    6, 13, // 7, 8
-    -1, 14, // 9, 10
-    1, 110, //11, 12
-    0, -1, //13, 14
-    3, 68, //15, 16
-    -1, 71, //17, 18
-    64, -1, //19, 20
-    65, 2, //21, 22
-    66, 67, //23, 24
-    -1, 21, //25, 26
-
-    19, 18, //27, 28
-    7, -1, //29, 30
-    8, 200, //31, 32
-    9, -1, //33, 34
-    10, 201, //35, 36
-    20, 198, //37, 38
-    -1, 199 //39, 40
-};
-#else
-int physToGpio[PIN_NUM] = {-1};
-#endif
-#endif
 
 
 /*

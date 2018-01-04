@@ -1,4 +1,6 @@
 //Cortex A5 32 bit
+
+#include "pinout.h"
 #define GPIOA_BASE                         0x20930000
 #define GPIOB_BASE                         0x20931000
 #define GPIOC_BASE                         0x11A08000
@@ -17,17 +19,16 @@
 #define MAP_SIZE           (4 * 4096)
 #define MAP_MASK           (MAP_SIZE - 1)
 
-#define GPIO_NUM 64
 #define BANK_NUM 4
 #define INDEX_NUM 32
 
 static volatile uint32_t *gpio;
 static volatile uint32_t *gpio_c;
 
-volatile uint32_t *gpio_arrw_low [GPIO_NUM];
-volatile uint32_t *gpio_arrw_high [GPIO_NUM];
+volatile uint32_t *gpio_arrw_low [PIN_NUM];
+volatile uint32_t *gpio_arrw_high [PIN_NUM];
 
-int physToGpio[GPIO_NUM] = {
+int physToGpio[PIN_NUM] = {
     -1, // 0
     -1, -1, // 1, 2
     62, -1, // 3, 4
@@ -188,7 +189,7 @@ int ca5_digitalRead(int pin) {
 }
 
 int checkPin(int pin) {
-    if (pin < 0 || pin >= GPIO_NUM) {
+    if (pin < 0 || pin >= PIN_NUM) {
         return 0;
     }
     if (physToGpio[pin] == -1) {

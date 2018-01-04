@@ -1,4 +1,7 @@
 //Allwinner H3 CPU
+
+#include "pinout.h"
+
 #define PIO_BASE (0x01C20800)
 #define BLOCK_SIZE  (4*1024)
 
@@ -7,7 +10,6 @@
 #define PIN_MODE *(cfg_reg[pin])
 #define PIN_PULL *(pull_reg[pin])
 
-#define PIN_NUM  27
 
 volatile uint32_t *base;
 

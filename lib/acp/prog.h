@@ -11,6 +11,7 @@
 #define ACP_CMD_PROG_GET_DATA_RUNTIME "pgdr"
 #define ACP_CMD_PROG_GET_DATA_INIT "pgdi"
 #define ACP_CMD_PROG_GET_DATA "pgd"
+#define ACP_CMD_PROG_GET_ENABLED "pgenl"
 
 #endif
 

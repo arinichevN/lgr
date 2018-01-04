@@ -36,7 +36,7 @@ function move_conf {
 	([ -d $CONF_DIR ] || mkdir $CONF_DIR) && \
 	([ -d $CONF_DIR_APP ] || mkdir $CONF_DIR_APP) && \
 	cp  config.tsv $CONF_DIR_APP && \
-	cp  data.db $CONF_DIR_APP && \
+	cp  db/data.db $CONF_DIR_APP && \
 	chmod -R a+rw $CONF_DIR_APP
 	echo "Your $APP configuration files are here: $CONF_DIR_APP";
 }

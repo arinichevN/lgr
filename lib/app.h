@@ -111,6 +111,7 @@
     return NULL;
 
 #define FORL for (i = 0; i < list->length; i++) 
+#define FORLISTP(V, I) for (size_t I = 0; I < V->length; I++) 
 #define LIi list->item[i]
 #define Lil list->length-1
 
@@ -118,9 +119,9 @@
 #define FUN_TRYLOCK(T) int tryLock ## T (T  *item) {if (item == NULL) {return 0;} if (pthread_mutex_trylock(&(item->mutex.self)) != 0) {return 0;}return 1;}
 #define FUN_UNLOCK(T) int unlock ## T (T *item) {if (item == NULL) {return 0;} if (pthread_mutex_unlock(&(item->mutex.self)) != 0) {return 0;}return 1;}
 
-#define DEF_FUN_LOCK(T) extern int lock ## T (T *item);
-#define DEF_FUN_TRYLOCK(T) extern int tryLock ## T (T  *item);
-#define DEF_FUN_UNLOCK(T) extern int unlock ## T (T *item);
+#define DEC_FUN_LOCK(T) extern int lock ## T (T *item);
+#define DEC_FUN_TRYLOCK(T) extern int tryLock ## T (T  *item);
+#define DEC_FUN_UNLOCK(T) extern int unlock ## T (T *item);
 
 enum {
     APP_INIT = 90,

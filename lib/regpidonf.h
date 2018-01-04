@@ -37,6 +37,8 @@ extern void regpidonf_enable(RegPIDOnf *item) ;
 
 extern void regpidonf_disable(RegPIDOnf *item) ;
 
+extern int regpidonf_getEnabled(const RegPIDOnf *item) ;
+
 extern void regpidonf_setDelta(RegPIDOnf *item, float value) ;
 
 extern void regpidonf_setKp(RegPIDOnf *item, float value) ;

@@ -91,6 +91,15 @@ int ton_ts(struct timespec interval, Ton_ts *t) {
     return 0;
 }
 
+void ton_ts_reset(Ton_ts *t){
+    t->ready=0;
+}
+
+void ton_ts_touch(Ton_ts *t){
+    clock_gettime(CLOCK_REALTIME, &t->start);
+    t->ready=1;
+}
+
 struct timespec getTimePassed_tv(const Ton_ts *t) {
     struct timespec now, dif;
     clock_gettime(CLOCK_REALTIME, &now);

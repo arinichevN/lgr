@@ -1,7 +1,7 @@
 #include "lck.h"
 
 void acp_lck_waitUnlock(Peer *peer, unsigned int interval_us) {
-    char state = 1;
+    int state = 1;
     while (1) {
         switch (state) {
             case 1:

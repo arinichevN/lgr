@@ -64,7 +64,7 @@ struct prog_st {
 
 typedef struct prog_st Prog;
 
-DEF_LLIST(Prog)
+DEC_LLIST(Prog)
 
 
 //typedef struct {
