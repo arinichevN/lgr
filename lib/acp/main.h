@@ -43,8 +43,12 @@
 
 #define ACP_FLOAT_FORMAT "%.3f"
 
+#define ACP_SEND_STR(V) acp_responseSendStr(V, ACP_MIDDLE_PACK, response, peer);
+
 typedef struct {
     char id[NAME_SIZE];
+    char addr_str[LINE_SIZE];
+    int port;
     int *fd;
     struct sockaddr_in addr;
     socklen_t addr_size;
@@ -54,6 +58,7 @@ typedef struct {
 } Peer;
 
 DEC_LIST(Peer)
+DEC_FUN_LIST_INIT(Peer)
 
 typedef struct {
     char cmd[ACP_COMMAND_MAX_SIZE];
@@ -176,11 +181,14 @@ typedef struct {
 DEC_LIST(EM)
 DEC_FUN_LIST_INIT(EM)
         
-#define FUN_ACP_REQUEST_DATA_TO(T) void acp_requestDataTo ## T(ACPRequest *request, T *list, size_t list_max_size){\
-acp_dataTo ## T(request->data, list, list_max_size);\
+#define FUN_ACP_REQUEST_DATA_TO(T) void acp_requestDataTo ## T(ACPRequest *request, T *list){\
+acp_dataTo ## T(request->data, list);\
 }
+#define DEC_FUN_ACP_REQUEST_DATA_TO(T) extern void acp_requestDataTo ## T(ACPRequest *request, T *list);
 
-#define DEC_FUN_ACP_REQUEST_DATA_TO(T) extern void acp_requestDataTo ## T(ACPRequest *request, T *list, size_t list_max_size);
+#define FUN_ACP_RESPONSE_READ(T) int acp_responseRead ## T(T *list, ACPRequest *request, Peer *peer) {ACP_RESPONSE_CREATE if (!acp_responseRead(&response, peer)) {return 0;}if(!acp_responseCheck(&response, request)) {return 0;}acp_dataTo ## T(response.data, list);    return 1;}
+#define DEC_FUN_ACP_RESPONSE_READ(T) extern int acp_responseRead ## T(T *list, ACPRequest *request, Peer *peer);
+
 
 #define ACP_CMD_IS(V) acp_cmdcmp(&request, V)
 #define ACP_REQUEST_CREATE ACPRequest request; acp_requestInit(&request);
@@ -262,9 +270,13 @@ extern int acp_requestSendUnrequitedS1List(char *cmd, const S1List *data, Peer *
 
 extern void acp_responseSendStr(const char *s, int is_not_last, ACPResponse *response, Peer *peer) ;
 
-extern int acp_responseReadFTSList(FTSList *list, size_t list_max_size, ACPRequest *request, Peer *peer) ;
+DEC_FUN_ACP_RESPONSE_READ(I1List)
 
-extern int acp_responseReadI2List(I2List *list, size_t list_max_size, ACPRequest *request, Peer *peer) ;
+DEC_FUN_ACP_RESPONSE_READ(I2List)
+
+DEC_FUN_ACP_RESPONSE_READ(I1F1List)
+
+DEC_FUN_ACP_RESPONSE_READ(FTSList)
 
 extern int acp_setEMOutput(EM *em, int output) ;
 
@@ -303,6 +315,8 @@ extern void acp_printI1(I1List *list) ;
 extern void acp_printI2(I2List *list) ;
 
 extern void acp_printI3(I3List *list) ;
+
+extern void acp_sendPeerListInfo(PeerList *pl, ACPResponse *response, Peer *peer);
 
 DEC_FUN_ACP_REQUEST_DATA_TO(I1List)
 

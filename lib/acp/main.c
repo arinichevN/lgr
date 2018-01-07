@@ -43,6 +43,8 @@ FUN_LIST_INIT(S2)
 
 FUN_LIST_INIT(FTS)
 
+FUN_LIST_INIT(Peer)
+
 FUN_LIST_INIT(SensorInt)
 
 FUN_LIST_INIT(SensorFTS)
@@ -140,16 +142,17 @@ static int acp_read(char *buf, size_t buf_size, Peer *peer) {
     ssize_t n = recvfrom(*peer->fd, buf, buf_size, 0, (struct sockaddr*) (&(peer->addr)), &(peer->addr_size));
     if (n < 0) {
 #ifdef MODE_DEBUG
-        perror("acp_read");
+        perror("acp_read()");
 #endif
         return 0;
     }
 #ifdef MODE_DEBUG
-    puts("acp_read() dump:");
+    printf("acp_read(): count:%ld dump:\n",n);
     acp_dumpBuf(buf, buf_size);
 #endif
     return acp_crcCheck(buf, buf_size);
 }
+
 
 static int acp_responseParse(ACPResponse *item) {
     if (strlen(item->buf) < ACP_RESPONSE_BUF_SIZE_MIN) {
@@ -344,7 +347,7 @@ static void acp_bufToData(char **v) {
 static int acp_sendBuf(const char *buf, size_t buf_size, Peer *peer) {
     size_t sz = acp_packlen(buf, buf_size);
 #ifdef MODE_DEBUG
-    fprintf(stdout, "acp_sendBuf(): we will send: %u bytes\n", sz);
+    fprintf(stdout, "acp_sendBuf(): we will send: %u bytes to %s at %s %d\n", sz, peer->id, peer->addr_str, peer->port);
 #endif
     return sendBuf((void *) buf, sz, *(peer->fd), (struct sockaddr *) (&peer->addr), peer->addr_size);
 }
@@ -440,10 +443,10 @@ static int acp_dataToF(char *buf, float *item) {
     return 1;
 }
 
-static void acp_dataToI1List(char *buf, I1List *list, size_t list_max_size) {
+static void acp_dataToI1List(char *buf, I1List *list) {
     char *buff = buf;
     list->length = 0;
-    while (list->length < list_max_size) {
+    while (list->length < list->max_length) {
         int p0;
         if (sscanf(buff, "%d", &p0) != 1) {
             break;
@@ -456,10 +459,10 @@ static void acp_dataToI1List(char *buf, I1List *list, size_t list_max_size) {
 
 FUN_ACP_REQUEST_DATA_TO(I1List)
 
-static void acp_dataToI2List(char *buf, I2List *list, size_t list_max_size) {
+static void acp_dataToI2List(char *buf, I2List *list) {
     char *buff = buf;
     list->length = 0;
-    while (list->length < list_max_size) {
+    while (list->length < list->max_length) {
         int p0, p1;
         if (sscanf(buff, "%d" ACP_DELIMITER_COLUMN_STR "%d", &p0, &p1) != 2) {
             break;
@@ -473,10 +476,10 @@ static void acp_dataToI2List(char *buf, I2List *list, size_t list_max_size) {
 
 FUN_ACP_REQUEST_DATA_TO(I2List)
 
-static void acp_dataToI3List(char *buf, I3List *list, size_t list_max_size) {
+static void acp_dataToI3List(char *buf, I3List *list) {
     char *buff = buf;
     list->length = 0;
-    while (list->length < list_max_size) {
+    while (list->length < list->max_length) {
         int p0, p1, p2;
         if (sscanf(buff, "%d" ACP_DELIMITER_COLUMN_STR "%d" ACP_DELIMITER_COLUMN_STR "%d", &p0, &p1, &p2) != 3) {
             break;
@@ -491,10 +494,10 @@ static void acp_dataToI3List(char *buf, I3List *list, size_t list_max_size) {
 
 FUN_ACP_REQUEST_DATA_TO(I3List)
 
-static void acp_dataToF1List(char *buf, F1List *list, size_t list_max_size) {
+static void acp_dataToF1List(char *buf, F1List *list) {
     char *buff = buf;
     list->length = 0;
-    while (list->length < list_max_size) {
+    while (list->length < list->max_length) {
         float p0;
         if (sscanf(buff, "%f", &p0) != 1) {
             break;
@@ -507,10 +510,10 @@ static void acp_dataToF1List(char *buf, F1List *list, size_t list_max_size) {
 
 FUN_ACP_REQUEST_DATA_TO(F1List)
 
-static void acp_dataToI1F1List(char *buf, I1F1List *list, size_t list_max_size) {
+static void acp_dataToI1F1List(char *buf, I1F1List *list) {
     char *buff = buf;
     list->length = 0;
-    while (list->length < list_max_size) {
+    while (list->length < list->max_length) {
         int p0;
         float p1;
         if (sscanf(buff, "%d" ACP_DELIMITER_COLUMN_STR "%f", &p0, &p1) != 2) {
@@ -525,10 +528,10 @@ static void acp_dataToI1F1List(char *buf, I1F1List *list, size_t list_max_size) 
 
 FUN_ACP_REQUEST_DATA_TO(I1F1List)
 
-static void acp_dataToS1List(char *buf, S1List *list, size_t list_max_size) {
+static void acp_dataToS1List(char *buf, S1List *list) {
     char *buff = buf;
     list->length = 0;
-    while (list->length < list_max_size) {
+    while (list->length < list->max_length) {
         char p0[LINE_SIZE];
         memset(p0, 0, sizeof p0);
         size_t i = 0;
@@ -557,7 +560,7 @@ static void acp_dataToS1List(char *buf, S1List *list, size_t list_max_size) {
 
 FUN_ACP_REQUEST_DATA_TO(S1List)
 
-static void acp_dataToI1S1List(char *buf, I1S1List *list, size_t list_max_size) {
+static void acp_dataToI1S1List(char *buf, I1S1List *list) {
     char *buff = buf;
     list->length = 0;
     char format[LINE_SIZE];
@@ -565,7 +568,7 @@ static void acp_dataToI1S1List(char *buf, I1S1List *list, size_t list_max_size) 
     if (n <= 0) {
         return;
     }
-    while (list->length < list_max_size) {
+    while (list->length < list->max_length) {
         int p0;
         char p1[LINE_SIZE];
         memset(p1, 0, sizeof p1);
@@ -581,10 +584,10 @@ static void acp_dataToI1S1List(char *buf, I1S1List *list, size_t list_max_size) 
 
 FUN_ACP_REQUEST_DATA_TO(I1S1List)
 
-static void acp_dataToFTSList(char *buf, FTSList *list, size_t list_max_size) {
+static void acp_dataToFTSList(char *buf, FTSList *list) {
     char *buff = buf;
     list->length = 0;
-    while (list->length < list_max_size) {
+    while (list->length < list->max_length) {
         int id, state;
         float temp;
         struct timespec tm;
@@ -603,10 +606,10 @@ static void acp_dataToFTSList(char *buf, FTSList *list, size_t list_max_size) {
 
 FUN_ACP_REQUEST_DATA_TO(FTSList)
 
-static void acp_dataToS2List(char *buf, S2List *list, size_t list_max_size) {
+static void acp_dataToS2List(char *buf, S2List *list) {
     char *buff = buf;
     list->length = 0;
-    while (list->length < list_max_size) {
+    while (list->length < list->max_length) {
         char p0[LINE_SIZE];
         char p1[LINE_SIZE];
         memset(p0, 0, sizeof p0);
@@ -823,31 +826,10 @@ void acp_responseSendStr(const char *s, int is_not_last, ACPResponse *response, 
         response->last_is_ok = 0;
     }
 }
-
-int acp_responseReadFTSList(FTSList *list, size_t list_max_size, ACPRequest *request, Peer *peer) {
-    ACP_RESPONSE_CREATE
-    if (!acp_responseRead(&response, peer)) {
-        return 0;
-    }
-    if (!acp_responseCheck(&response, request)) {
-        return 0;
-    }
-    acp_dataToFTSList(response.data, list, list_max_size);
-    return 1;
-}
-
-int acp_responseReadI2List(I2List *list, size_t list_max_size, ACPRequest *request, Peer *peer) {
-    ACP_RESPONSE_CREATE
-    if (!acp_responseRead(&response, peer)) {
-        return 0;
-    }
-    if (!acp_responseCheck(&response, request)) {
-        return 0;
-    }
-    acp_dataToI2List(response.data, list, list_max_size);
-    return 1;
-}
-
+FUN_ACP_RESPONSE_READ(I1List)
+FUN_ACP_RESPONSE_READ(I2List)
+FUN_ACP_RESPONSE_READ(I1F1List)
+FUN_ACP_RESPONSE_READ(FTSList)
 int acp_setEMOutput(EM *em, int output) {
     if (lockEM(em)) {
         if (lockPeer(em->source)) {
@@ -859,7 +841,7 @@ int acp_setEMOutput(EM *em, int output) {
             I2 di[1];
             di[0].p0 = em->remote_id;
             di[0].p1 = output;
-            I2List data = {di, 1};
+            I2List data = {di, 1,1};
             if (!acp_requestSendUnrequitedI2List(ACP_CMD_SET_INT, &data, em->source)) {
 #ifdef MODE_DEBUG
                 fprintf(stderr, "acp_setEMOutput(): failed to send request where em.id = %d\n", em->id);
@@ -888,7 +870,7 @@ int acp_setEMDutyCycle(EM *em, float output) {
             I2 di[1];
             di[0].p0 = em->remote_id;
             di[0].p1 = (int) output;
-            I2List data = {di, 1};
+            I2List data = {di, 1,1};
             if (!acp_requestSendUnrequitedI2List(ACP_CMD_SET_PWM_DUTY_CYCLE, &data, em->source)) {
 #ifdef MODE_DEBUG
                 fprintf(stderr, "acp_setEMDutyCycle(): failed to send request where em.id = %d\n", em->id);
@@ -912,7 +894,7 @@ int acp_setEMOutputR(EM *em, int output) {
             I2 di[1];
             di[0].p0 = em->remote_id;
             di[0].p1 = output;
-            I2List data = {di, 1};
+            I2List data = {di, 1,1};
             if (!acp_requestSendUnrequitedI2List(ACP_CMD_SET_INT, &data, em->source)) {
 #ifdef MODE_DEBUG
                 fprintf(stderr, "acp_setEMOutput(): failed to send request where em.id = %d\n", em->id);
@@ -936,7 +918,7 @@ int acp_setEMDutyCycleR(EM *em, float output) {
             I2 di[1];
             di[0].p0 = em->remote_id;
             di[0].p1 = (int) output;
-            I2List data = {di, 1};
+            I2List data = {di, 1,1};
             if (!acp_requestSendUnrequitedI2List(ACP_CMD_SET_PWM_DUTY_CYCLE, &data, em->source)) {
 #ifdef MODE_DEBUG
                 fprintf(stderr, "ERROR: acp_setEMDutyCycle(): failed to send request where em.id = %d\n", em->id);
@@ -973,7 +955,7 @@ int acp_readSensorInt(SensorInt *s) {
 
             int di[1];
             di[0] = s->remote_id;
-            I1List data = {di, 1};
+            I1List data = {di, 1,1};
             ACPRequest request;
             if (!acp_requestSendI1List(ACP_CMD_GET_INT, &data, &request, s->source)) {
 #ifdef MODE_DEBUG
@@ -993,7 +975,7 @@ int acp_readSensorInt(SensorInt *s) {
             for (i = 0; i < ACP_RETRY_NUM; i++) {
                 memset(&td, 0, sizeof tl);
                 tl.length = 0;
-                if (!acp_responseReadI2List(&tl, 1, &request, s->source)) {
+                if (!acp_responseReadI2List(&tl, &request, s->source)) {
 #ifdef MODE_DEBUG
                     fprintf(stderr, "acp_readSensorInt(): acp_responseReadI2List() error where sensor.id = %d\n", s->id);
 #endif
@@ -1047,7 +1029,7 @@ int acp_readSensorFTS(SensorFTS *s) {
 
             int di[1];
             di[0] = s->remote_id;
-            I1List data = {di, 1};
+            I1List data = {di, 1,1};
             ACPRequest request;
             if (!acp_requestSendI1List(ACP_CMD_GET_FTS, &data, &request, s->source)) {
 #ifdef MODE_DEBUG
@@ -1064,7 +1046,7 @@ int acp_readSensorFTS(SensorFTS *s) {
 
             memset(&td, 0, sizeof tl);
             tl.length = 0;
-            if (!acp_responseReadFTSList(&tl, 1, &request, s->source)) {
+            if (!acp_responseReadFTSList(&tl, &request, s->source)) {
 #ifdef MODE_DEBUG
                 fprintf(stderr, "acp_readSensorFTS(): acp_responseReadFTSList() error where sensor.id = %d and remote_id=%d\n", s->id, s->remote_id);
 #endif
@@ -1077,7 +1059,6 @@ int acp_readSensorFTS(SensorFTS *s) {
 #ifdef MODE_DEBUG
                 fprintf(stderr, "acp_readSensorFTS(): response: peer returned id=%d but requested one was %d\n", tl.item[0].id, s->remote_id);
 #endif
-                readAll(*(s->source->fd));
                 unlockPeer(s->source);
                 unlockSensorFTS(s);
                 return 0;
@@ -1119,7 +1100,7 @@ int acp_getFTS(FTS *output, Peer *peer, int remote_id) {
 
         int di[1];
         di[0] = remote_id;
-        I1List data = {di, 1};
+        I1List data = {di, 1,1};
         ACPRequest request;
         if (!acp_requestSendI1List(ACP_CMD_GET_FTS, &data, &request, peer)) {
 #ifdef MODE_DEBUG
@@ -1135,7 +1116,7 @@ int acp_getFTS(FTS *output, Peer *peer, int remote_id) {
 
         memset(&td, 0, sizeof tl);
         tl.length = 0;
-        if (!acp_responseReadFTSList(&tl, 1, &request, peer)) {
+        if (!acp_responseReadFTSList(&tl, &request, peer)) {
 #ifdef MODE_DEBUG
             fprintf(stderr, "acp_getFTS(): acp_responseReadFTSList() error where remote_id=%d\n", remote_id);
 #endif
@@ -1147,7 +1128,6 @@ int acp_getFTS(FTS *output, Peer *peer, int remote_id) {
 #ifdef MODE_DEBUG
             fprintf(stderr, "acp_getFTS(): response: peer returned id=%d but requested one was %d\n", tl.item[0].id, remote_id);
 #endif
-            readAll(*(peer->fd));
             unlockPeer(peer);
             return 0;
         }
@@ -1176,23 +1156,24 @@ int acp_getFTS(FTS *output, Peer *peer, int remote_id) {
 
 void acp_pingPeer(Peer *item) {
     if (lockPeer(item)) {
-        readAll(*(item->fd));
         item->active = 0;
+        item->time1 = getCurrentTime();
         ACPRequest request;
         if (!acp_requestSendCmd(ACP_CMD_APP_PING, &request, item)) {
 #ifdef MODE_DEBUG
             fputs("acp_pingPeer(): acp_requestSendCmd failed\n", stderr);
 #endif
-            item->time1 = getCurrentTime();
             unlockPeer(item);
             return;
         }
         //waiting for response...
         ACP_RESPONSE_CREATE
         if (!acp_responseRead(&response, item)) {
+            unlockPeer(item);
             return;
         }
         if (!acp_responseCheck(&response, &request)) {
+            unlockPeer(item);
             return;
         }
         char *b = response.data;
@@ -1202,12 +1183,10 @@ void acp_pingPeer(Peer *item) {
 #ifdef MODE_DEBUG
             fputs("acp_pingPeer(): peer is not busy\n", stderr);
 #endif
-            item->time1 = getCurrentTime();
             unlockPeer(item);
             return;
         }
         item->active = 1;
-        item->time1 = getCurrentTime();
         unlockPeer(item);
     }
 }
@@ -1247,29 +1226,27 @@ int acp_responseSendCurTime(ACPResponse *item, Peer *peer) {
 int acp_sendCmdGetInt(Peer *peer, char* cmd, int *output) {
     if (lockPeer(peer)) {
         peer->active = 0;
+        peer->time1 = getCurrentTime();
         ACPRequest request;
         if (!acp_requestSendCmd(cmd, &request, peer)) {
 #ifdef MODE_DEBUG
             fputs("acp_sendCmdGetInt(): acp_requestSendCmd failed\n", stderr);
 #endif
-            peer->time1 = getCurrentTime();
             unlockPeer(peer);
             return 0;
         }
         //waiting for response...
         ACP_RESPONSE_CREATE
         if (!acp_responseRead(&response, peer)) {
-            peer->time1 = getCurrentTime();
             unlockPeer(peer);
             return 0;
         }
+        peer->active = 1;
         unlockPeer(peer);
-
         if (!acp_responseCheck(&response, &request)) {
             return 0;
         }
-        peer->active = 1;
-        peer->time1 = getCurrentTime();
+
         if (!acp_dataToI(response.data, output)) {
 #ifdef MODE_DEBUG
             fputs("acp_sendCmdGetInt(): acp_dataToI() failed\n", stderr);
@@ -1287,19 +1264,18 @@ int acp_sendCmdGetInt(Peer *peer, char* cmd, int *output) {
 int acp_sendCmdGetFloat(Peer *peer, char* cmd, float *output) {
     if (lockPeer(peer)) {
         peer->active = 0;
+        peer->time1 = getCurrentTime();
         ACPRequest request;
         if (!acp_requestSendCmd(cmd, &request, peer)) {
 #ifdef MODE_DEBUG
             fputs("acp_sendCmdGetFloat(): acp_requestSendCmd failed\n", stderr);
 #endif
-            peer->time1 = getCurrentTime();
             unlockPeer(peer);
             return 0;
         }
         //waiting for response...
         ACP_RESPONSE_CREATE
         if (!acp_responseRead(&response, peer)) {
-            peer->time1 = getCurrentTime();
             unlockPeer(peer);
             return 0;
         }
@@ -1309,7 +1285,6 @@ int acp_sendCmdGetFloat(Peer *peer, char* cmd, float *output) {
             return 0;
         }
         peer->active = 1;
-        peer->time1 = getCurrentTime();
         if (!acp_dataToF(response.data, output)) {
 #ifdef MODE_DEBUG
             fputs("acp_sendCmdGetFloat(): acp_dataToI() failed\n", stderr);
@@ -1404,6 +1379,26 @@ void acp_printI3(I3List *list) {
     puts("+-----------+-----------+-----------+");
 }
 
+void acp_sendPeerListInfo(PeerList *pl, ACPResponse *response, Peer *peer) {
+    char q[LINE_SIZE];
+    ACP_SEND_STR("+--------------------------------------------------------------------------------+\n")
+    ACP_SEND_STR("|                                       Peer                                     |\n")
+    ACP_SEND_STR("+-----------+---------------+-----------+-----------+----------------+-----------+\n")
+    ACP_SEND_STR("|    id     |    address    |   port    | sin_port  |     s_addr     |     fd    |\n")
+    ACP_SEND_STR("+-----------+---------------+-----------+-----------+----------------+-----------+\n")
+    for (int i = 0; i < pl->length; i++) {
+        snprintf(q, sizeof q, "|%11s|%15s|%11d|%11u|%16u|%11d|\n",
+                pl->item[i].id,
+                pl->item[i].addr_str,
+                pl->item[i].port,
+                pl->item[i].addr.sin_port,
+                pl->item[i].addr.sin_addr.s_addr,
+                *pl->item[i].fd
+                );
+        ACP_SEND_STR(q)
+    }
+    ACP_SEND_STR("+-----------+---------------+-----------+-----------+----------------+-----------+\n")
+}
 
 
 

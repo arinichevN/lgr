@@ -24,7 +24,7 @@ char *physToGpio[PIN_NUM] = {
 #ifdef PINOUT2
 #define PIN_NUM  1
 char *physToGpio[PIN_NUM] = {
-"-"
+    "-"
 };
 #else
 //orange pi
@@ -276,8 +276,36 @@ char *physToGpio[PIN_NUM] = {
 };
 
 #else
+//asus thinker board
+#ifdef PINOUT12
+#define PIN_NUM  41
+char *physToGpio [PIN_NUM] = {
+    "----", // 0
+    "----", "----", //1, 2
+    "P8A4", "----", //3, 4
+    "P8A5", "----", //5, 6
+    "P0C1", "P5B1", //7, 8
+    "----", "P5B0", //9, 10
+    "P5B4", "P6A0", //11, 12
+    "P5B6", "----", //13, 14
+    "P5B7", "P5B2", //15, 16
+    "----", "P5B3", //17, 18
+    "P8B1", "----", //19, 20
+    "P8B0", "P5C3", //21, 22
+    "P8A6", "P8A7", //23, 24
+    "----", "P8A3", //25, 26
+    "P7C1", "P7C2", //27, 28
+    "P5B5", "----", //29, 30
+    "P5C0", "P7C7", //31, 32      
+    "P7C6", "----", //33, 34
+    "P6A1", "P7A7", //35, 36
+    "P7B0", "P6A3", //37, 38
+    "----", "P6A4" //39, 40
+};
+#else
 #define PIN_NUM  1
 char *physToGpio[PIN_NUM] = {"-"};
+#endif
 #endif
 #endif
 #endif

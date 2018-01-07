@@ -131,9 +131,11 @@ void regpidonf_setKd(RegPIDOnf *item, float value) {
 
 void regpidonf_setGoal(RegPIDOnf *item, float value) {
     item->goal = value;
+/*
     if (item->state == REG_BUSY) {
         item->state = REG_INIT;
     }
+*/
 }
 
 void regpidonf_setMode(RegPIDOnf *item, const char * value) {

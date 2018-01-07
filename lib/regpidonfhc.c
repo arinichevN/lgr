@@ -188,8 +188,10 @@ void regpidonfhc_control(RegPIDOnfHC *item) {
     char *state = reg_getStateStr(item->state);
     char *state_r = reg_getStateStr(item->state_r);
     char *state_onf = reg_getStateStr(item->state_onf);
+    char *heater_mode = reg_getStateStr(item->heater.mode);
+    char *cooler_mode = reg_getStateStr(item->cooler.mode);
     struct timespec tm1 = getTimeRestTmr(item->change_gap, item->tmr);
-    printf("state=%s state_onf=%s EM_state=%s goal=%.1f real=%.1f out=%.1f change_time=%ldsec\n", state, state_onf, state_r, item->goal, SNSR_VAL, item->output, tm1.tv_sec);
+    printf("state=%s state_onf=%s EM_state=%s hmode=%s cmode=%s goal=%.1f real=%.1f out=%.1f change_time=%ldsec\n", state, state_onf, state_r,heater_mode, cooler_mode, item->goal, SNSR_VAL, item->output, tm1.tv_sec);
 #endif
 }
 
@@ -248,9 +250,11 @@ void regpidonfhc_setCoolerKd(RegPIDOnfHC *item, float value) {
 
 void regpidonfhc_setGoal(RegPIDOnfHC *item, float value) {
     item->goal = value;
+/*
     if (item->state == REG_BUSY) {
         item->state = REG_INIT;
     }
+*/
 }
 
 void regpidonfhc_setHeaterMode(RegPIDOnfHC *item, const char * value) {

@@ -195,9 +195,11 @@ void regonfhc_setHeaterDelta(RegOnfHC *item, float value) {
 
 void regonfhc_setGoal(RegOnfHC *item, float value) {
     item->goal = value;
+/*
     if (item->state == REG_BUSY) {
         item->state = REG_INIT;
     }
+*/
 }
 
 void regonfhc_setChangeGap(RegOnfHC *item, int value) {

@@ -3,7 +3,7 @@
 void crc_update(uint8_t *crc, uint8_t b) {
     int i;
     for (i = 8; i; i--) {
-         *crc = ((*crc ^ b) & 1) ? (*crc >> 1) ^ 0b10001100 : (*crc >> 1);
+         *crc = ((*crc ^ b) & 1) ? (*crc >> 1) ^ 0x8c : (*crc >> 1);
         b >>= 1;
     }
 }

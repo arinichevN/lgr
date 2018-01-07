@@ -10,9 +10,6 @@ int db_open(const char *path, sqlite3 **db) {
         sqlite3_close(*db);
         return 0;
     }
-#ifdef MODE_DEBUG
-    printf("db_open: success, status: %d\n", rc);
-#endif
     return 1;
 }
 

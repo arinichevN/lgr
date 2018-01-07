@@ -34,3 +34,6 @@ PINOUT=-DPINOUT3
 
 #banana pi m64
 #PINOUT=-DPINOUT11
+
+#asus think board
+#PINOUT=-DPINOUT12

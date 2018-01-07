@@ -3,12 +3,30 @@
 #include "configl.h"
 
 int config_checkPeerList(const PeerList *list) {
-    size_t i, j;
     //unique id
-    for (i = 0; i < list->length; i++) {
-        for (j = i + 1; j < list->length; j++) {
+    for (size_t i = 0; i < list->length; i++) {
+        for (size_t j = i + 1; j < list->length; j++) {
             if (strcmp(list->item[i].id, list->item[j].id) == 0) {
                 fprintf(stderr, "checkPeerList: id = %s is not unique\n", list->item[i].id);
+                return 0;
+            }
+        }
+    }
+    return 1;
+}
+
+int config_checkSensorFTSList(const SensorFTSList *list) {
+    for (size_t i = 0; i < list->length; i++) {
+        if (list->item[i].source == NULL) {
+            fprintf(stderr, "config_checkSensorFTSList: bad peer where id = %d\n", list->item[i].id);
+            return 0;
+        }
+    }
+    //unique id
+    for (size_t i = 0; i < list->length; i++) {
+        for (size_t j = i + 1; j < list->length; j++) {
+            if (list->item[i].id == list->item[j].id) {
+                fprintf(stderr, "config_checkSensorFTSList: id = %d is not unique\n", list->item[i].id);
                 return 0;
             }
         }
@@ -20,21 +38,19 @@ int config_checkPeerList(const PeerList *list) {
 
 static int getPeerList_callback(void *data, int argc, char **argv, char **azColName) {
     PeerData *peer_data = data;
-    int port = 0;
-    char addr_str[NAME_SIZE];
     int i;
     for (i = 0; i < argc; i++) {
         if (strcmp("id", azColName[i]) == 0) {
             memcpy(PDLi.id, argv[i], NAME_SIZE);
         } else if (strcmp("port", azColName[i]) == 0) {
-            port = atoi(argv[i]);
+            PDLi.port = atoi(argv[i]);
         } else if (strcmp("ip_addr", azColName[i]) == 0) {
-            memcpy(addr_str, argv[i], NAME_SIZE);
+            memcpy(PDLi.addr_str, argv[i], LINE_SIZE);
         } else {
             fputs("getPeerList_callback: unknown column\n", stderr);
         }
     }
-    if (!makeClientAddr(&PDLi.addr, addr_str, port)) {
+    if (!makeClientAddr(&PDLi.addr, PDLi.addr_str, PDLi.port)) {
         fprintf(stderr, "getPeerList_callback: ERROR: bad ip address for peer with id=%s\n", PDLi.id);
         peer_data->list->length++;
         return 1;
@@ -74,10 +90,30 @@ static int getSensorFTS_callback(void *data, int argc, char **argv, char **azCol
             item->sensor->source = getPeerById(argv[i], item->peer_list);
         } else if (strcmp("remote_id", azColName[i]) == 0) {
             item->sensor->remote_id = atoi(argv[i]);
+        } else if (strcmp("sensor_id", azColName[i]) == 0) {
+            item->sensor->id = atoi(argv[i]);
         } else {
             fputs("getSensorFTS_callback: unknown column\n", stderr);
         }
     }
+    return 0;
+}
+
+static int getSensorFTSList_callback(void *data, int argc, char **argv, char **azColName) {
+    SensorFTSListData *d = (SensorFTSListData *) data;
+    int i;
+    for (i = 0; i < argc; i++) {
+        if (strcmp("peer_id", azColName[i]) == 0) {
+            d->list->item[d->list->length].source = getPeerById(argv[i], d->peer_list);
+        } else if (strcmp("remote_id", azColName[i]) == 0) {
+            d->list->item[d->list->length].remote_id = atoi(argv[i]);
+        } else if (strcmp("sensor_id", azColName[i]) == 0) {
+            d->list->item[d->list->length].id = atoi(argv[i]);
+        } else {
+            fputs("getSensorFTSList_callback: unknown column\n", stderr);
+        }
+    }
+    d->list->length++;
     return 0;
 }
 
@@ -100,6 +136,8 @@ static int getEM_callback(void *data, int argc, char **argv, char **azColName) {
 }
 
 int config_getPeerList(PeerList *list, int *fd, const char *db_path) {
+    list->item = NULL;
+    list->length = list->max_length = 0;
     sqlite3 *db;
     if (!db_open(db_path, &db)) {
         return 0;
@@ -111,13 +149,12 @@ int config_getPeerList(PeerList *list, int *fd, const char *db_path) {
         sqlite3_close(db);
         return 1;
     }
-    list->item = (Peer *) malloc(n * sizeof *(list->item));
-    if (list->item == NULL) {
+    if (!initPeerList(list, n)) {
         fprintf(stderr, "config_getPeerList: failed to allocate memory\n");
         sqlite3_close(db);
         return 0;
     }
-    PeerData data = {.list=list, .fd=fd};
+    PeerData data = {.list = list, .fd = fd};
     char *q = "select id, port, ip_addr FROM peer";
     if (!db_exec(db, q, getPeerList_callback, (void*) &data)) {
 #ifdef MODE_DEBUG
@@ -133,11 +170,46 @@ int config_getPeerList(PeerList *list, int *fd, const char *db_path) {
     return 1;
 }
 
+int config_getSensorFTSList(SensorFTSList *list, PeerList *peer_list, const char *db_path) {
+    list->item = NULL;
+    list->length = list->max_length = 0;
+    sqlite3 *db;
+    if (!db_open(db_path, &db)) {
+        return 0;
+    }
+    int n = 0;
+    char *qn = "select count(*) FROM sensor_mapping";
+    db_getInt(&n, db, qn);
+    if (n <= 0) {
+        sqlite3_close(db);
+        return 1;
+    }
+    if (!initSensorFTSList(list, n)) {
+        fprintf(stderr, "config_getSensorFTSList: failed to allocate memory\n");
+        sqlite3_close(db);
+        return 0;
+    }
+    SensorFTSListData data = {.list = list, .peer_list = peer_list};
+    char *q = "select sensor_id, peer_id, peer_id FROM sensor_mapping";
+    if (!db_exec(db, q, getSensorFTSList_callback, (void*) &data)) {
+#ifdef MODE_DEBUG
+        fprintf(stderr, "config_getSensorFTSList: query failed: %s\n", q);
+#endif
+        sqlite3_close(db);
+        return 0;
+    }
+    sqlite3_close(db);
+    if (!config_checkSensorFTSList(list)) {
+        return 0;
+    }
+    return 1;
+}
+
 int config_getSensorFTS(SensorFTS *item, int sensor_id, const PeerList *pl, sqlite3 *db) {
     char q[LINE_SIZE];
     SensorFTSData data = {item, pl};
     memset(item, 0, sizeof *item);
-    snprintf(q, sizeof q, "select peer_id, remote_id from sensor_mapping where sensor_id=%d", sensor_id);
+    snprintf(q, sizeof q, "select sensor_id, peer_id, remote_id from sensor_mapping where sensor_id=%d", sensor_id);
     if (!db_exec(db, q, getSensorFTS_callback, (void*) &data)) {
 #ifdef MODE_DEBUG
         fprintf(stderr, "config_getSensorFTS: query failed: %s\n", q);
@@ -172,7 +244,7 @@ int config_getEM(EM *item, int em_id, const PeerList *pl, sqlite3 *db) {
 int config_getPeer(Peer *item, char * peer_id, int *fd, sqlite3 *db) {
     char q[LINE_SIZE];
     PeerList pl = {.item = item, .length = 0};
-    PeerData data = {.list=&pl, .fd=fd};
+    PeerData data = {.list = &pl, .fd = fd};
     memset(item, 0, sizeof *item);
     snprintf(q, sizeof q, "SELECT id, port, ip_addr FROM peer where id='%s'", peer_id);
     if (!db_exec(db, q, getPeerList_callback, (void*) &data)) {
@@ -194,6 +266,8 @@ int config_getPeer(Peer *item, char * peer_id, int *fd, sqlite3 *db) {
 }
 
 int config_getPhoneNumberListG(S1List *list, int group_id, const char *db_path) {
+    list->item = NULL;
+    list->length = list->max_length = 0;
     sqlite3 *db;
     if (!db_open(db_path, &db)) {
         return 0;
@@ -212,7 +286,6 @@ int config_getPhoneNumberListG(S1List *list, int group_id, const char *db_path) 
         sqlite3_close(db);
         return 1;
     }
-    list->length = 0;
     size_t list_size = LINE_SIZE * n * sizeof *(list->item);
     list->item = (char *) malloc(list_size);
     if (list->item == NULL) {
@@ -245,6 +318,8 @@ int config_getPhoneNumberListG(S1List *list, int group_id, const char *db_path) 
 }
 
 int config_getPhoneNumberListO(S1List *list, const char *db_path) {
+    list->item = NULL;
+    list->length = list->max_length = 0;
     sqlite3 *db;
     if (!db_open(db_path, &db)) {
         return 0;
@@ -261,7 +336,6 @@ int config_getPhoneNumberListO(S1List *list, const char *db_path) {
         sqlite3_close(db);
         return 1;
     }
-    list->length = 0;
     size_t list_size = LINE_SIZE * n * sizeof *(list->item);
     list->item = (char *) malloc(list_size);
     if (list->item == NULL) {

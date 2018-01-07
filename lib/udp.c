@@ -68,7 +68,7 @@ int makeClientAddr(struct sockaddr_in *addr, const char *addr_str, int port) {
 
 int sendBuf(void *buf, size_t buf_size, int fd, struct sockaddr *addr, socklen_t addr_len) {
     ssize_t n;
-    n=sendto(fd, buf, buf_size, 0, addr, addr_len);
+    n = sendto(fd, buf, buf_size, 0, addr, addr_len);
     if (n < 0) {
 #ifdef MODE_DEBUG
         perror("sendBuf");
@@ -79,7 +79,8 @@ int sendBuf(void *buf, size_t buf_size, int fd, struct sockaddr *addr, socklen_t
 }
 
 int serverRead(void *buf, size_t buf_size, int fd, struct sockaddr * addr, socklen_t * addr_len) {
-    if (recvfrom(fd, buf, buf_size, 0, addr, addr_len) < 0) {
+    ssize_t n = recvfrom(fd, buf, buf_size, 0, addr, addr_len);
+    if (n < 0) {
 #ifdef MODE_DEBUG
         perror("serverRead: recvfrom() error");
 #endif
@@ -89,7 +90,8 @@ int serverRead(void *buf, size_t buf_size, int fd, struct sockaddr * addr, sockl
 }
 
 int clientRead(int fd, void *buf, size_t buf_size) {
-    if (recvfrom(fd, buf, buf_size, 0, NULL, NULL) < 0) {
+    ssize_t n = recvfrom(fd, buf, buf_size, 0, NULL, NULL);
+    if (n < 0) {
 #ifdef MODE_DEBUG
         perror("clientRead: recvfrom()");
 #endif

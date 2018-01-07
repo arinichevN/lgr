@@ -28,8 +28,12 @@
 #ifdef CPU_ALLWINNER_A83T
 #include "gpio/allwinner_2.c"
 #else
+#ifdef CPU_ROCKCHIP_RK3288
+#include "gpio/rk3288.c"
+#else
 //debugging mode (for machine with no GPIO)
 #include "gpio/all.c"
+#endif
 #endif
 #endif
 #endif

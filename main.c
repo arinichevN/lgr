@@ -15,7 +15,7 @@ struct timespec cycle_duration = {0, 0};
 DEF_THREAD
         struct timespec rsens_interval_min = {1, 0};
 struct timespec peer_ping_interval = {3, 0};
-I1List i1l = {NULL, 0};
+I1List i1l;
 Mutex progl_mutex = {.created = 0, .attr_initialized = 0};
 
 PeerList peer_list = {NULL, 0};
@@ -110,7 +110,7 @@ void serverRun(int *state, int init_state) {
             ACP_CMD_IS(ACP_CMD_PROG_GET_DATA_INIT) ||
             ACP_CMD_IS(ACP_CMD_PROG_GET_DATA_RUNTIME)
             ) {
-        acp_requestDataToI1List(&request, &i1l, prog_list.length);
+        acp_requestDataToI1List(&request, &i1l);
         if (i1l.length <= 0) {
             return;
         }
