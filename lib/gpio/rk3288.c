@@ -389,7 +389,7 @@ int gpioSetup() {
     }
 
     for (int i = 0; i < GPIO_BANK_NUM; i++) {
-        gpio[i] = (uint32_t *) mmap(NULL, PAGE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, RK3288_GPIO(i));
+        gpio[i] =  mmap(NULL, PAGE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, RK3288_GPIO(i));
         if ( gpio[i] == MAP_FAILED) {
             perror("gpioSetup(): gpio mmap failed");
             close(fd);
@@ -397,13 +397,13 @@ int gpioSetup() {
         }
     }
 
-    grf = (uint32_t *) mmap(NULL, PAGE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, RK3288_GRF_PHYS);
+    grf =  mmap(NULL, PAGE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, RK3288_GRF_PHYS);
     if ( grf == MAP_FAILED) {
         perror("gpioSetup(): grf mmap failed");
         close(fd);
         return 0;
     }
-    pmu = (uint32_t *) mmap(NULL, PAGE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, RK3288_PMU);
+    pmu =  mmap(NULL, PAGE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, RK3288_PMU);
     if ( pmu == MAP_FAILED) {
         perror("gpioSetup(): pmu mmap failed");
         close(fd);

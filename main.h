@@ -34,9 +34,9 @@
 #define STATUS_SUCCESS "SUCCESS"
 #define STATUS_FAILURE "FAILURE"
 
-#define PROG_LIST_LOOP_DF Prog *curr = prog_list.top;
-#define PROG_LIST_LOOP_ST while (curr != NULL) {
-#define PROG_LIST_LOOP_SP curr = curr->next; } curr = prog_list.top;
+#define PROG_LIST_LOOP_ST {Prog *item = prog_list.top; while (item != NULL) {
+#define PROG_LIST_LOOP_SP item = item->next; } item = prog_list.top;}
+
 #define PROG_FIELDS "id, sensor_fts_id, kind, interval_min, max_rows, enable,load"
 
 enum {
@@ -58,7 +58,10 @@ struct prog_st {
     Ton_ts tmr;
     SensorFTS sensor_fts;
 
+    int sock_fd;
+    struct timespec cycle_duration;
     Mutex mutex;
+    pthread_t thread;
     struct prog_st *next;
 };
 
@@ -66,56 +69,31 @@ typedef struct prog_st Prog;
 
 DEC_LLIST(Prog)
 
-
-//typedef struct {
-//    PeerList *list;
-//    int *fd;
-//} PeerData;
-//
-//typedef struct {
-//    SensorFTS *sensor;
-//    PeerList *peer_list;
-//} SensorFTSData;
-
 typedef struct {
-    sqlite3 *db;
-    PeerList *peer_list;
     ProgList *prog_list;
+    PeerList *peer_list;
+    Prog * prog;
+    sqlite3 *db_data;
 } ProgData;
 
-typedef struct {
-    sqlite3 *db;
-    Prog *item;
-    PeerList *peer_list;
-    ProgList *prog_list;
-} ProgDataR;
+extern int readSettings();
 
-extern int readSettings() ;
+extern int initData();
 
-extern int initData() ;
+extern void initApp();
 
-extern void initApp() ;
+extern void serverRun(int *state, int init_state);
 
-extern void serverRun(int *state, int init_state) ;
+extern void progControl(Prog *item);
 
-extern int saveFTS(Prog *item, const char *db_path) ;
+extern void *threadFunction(void *arg);
 
-extern int clearLog(int dev_id, sqlite3 *db) ;
+extern void freeData();
 
-extern void progControl(Prog *item) ;
+extern void freeApp();
 
-extern void *threadFunction(void *arg) ;
+extern void exit_nicely();
 
-extern int createThread_ctl() ;
-
-extern void freeProg(ProgList *list) ;
-
-extern void freeData() ;
-
-extern void freeApp() ;
-
-extern void exit_nicely() ;
-
-extern void exit_nicely_e(char *s) ;
+extern void exit_nicely_e(char *s);
 #endif 
 

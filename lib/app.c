@@ -24,7 +24,7 @@ int file_exist(const char *filename) {
 void setPriorityMax(int policy) {
     int max = sched_get_priority_max(policy);
     if (max == -1) {
-        perror("sched_get_priority_max() failed");
+        perror("sched_get_priority_max()");
         return;
     }
     struct sched_param sp;
@@ -32,7 +32,7 @@ void setPriorityMax(int policy) {
     sp.__sched_priority = max;
     int ret = sched_setscheduler(0, policy, &sp);
     if (ret == -1) {
-        perror("sched_setscheduler() failed");
+        perror("sched_setscheduler()");
     }
 }
 
@@ -74,7 +74,7 @@ int readConf(const char *path, char conninfo[LINE_SIZE], char app_class[NAME_SIZ
 int readHostName(char *hostname) {
     memset(hostname, 0, HOST_NAME_MAX);
     if (gethostname(hostname, HOST_NAME_MAX)) {
-        perror("readHostName: failed to read\n");
+        perror("readHostName()");
         return 0;
     }
     return 1;
@@ -111,7 +111,7 @@ int initPid(int *pid_file, int *pid, const char *pid_path) {
 #endif
             }
 
-            sprintf(pid_str, "%d\n", p);
+            snprintf(pid_str,INT_STR_SIZE ,"%d\n", p);
             n_written = write(*pid_file, pid_str, sizeof pid_str);
             if (n_written != sizeof pid_str) {
                 fputs("setPid: writing to pid file failed\n", stderr);
@@ -155,17 +155,17 @@ int initMutex(Mutex *m) {
     m->created = 0;
     m->attr_initialized = 0;
     if (pthread_mutexattr_init(&m->attr) != 0) {
-        perror("initMutex: pthread_mutexattr_init");
+        perror("initMutex(): pthread_mutexattr_init");
         return 0;
     }
     m->attr_initialized = 1;
     if (pthread_mutexattr_settype(&m->attr, PTHREAD_MUTEX_ERRORCHECK) != 0) {
-        perror("initMutex: pthread_mutexattr_settype");
+        perror("initMutex(): pthread_mutexattr_settype");
         return 0;
     }
 
     if (pthread_mutex_init(&m->self, &m->attr) != 0) {
-        perror("initMutex: pthread_mutex_init r");
+        perror("initMutex(): pthread_mutex_init r");
         return 0;
     }
     m->created = 1;
@@ -175,14 +175,14 @@ int initMutex(Mutex *m) {
 void freeMutex(Mutex *m) {
     if (m->attr_initialized) {
         if (pthread_mutexattr_destroy(&m->attr) != 0) {
-            perror("freeMutex: pthread_mutexattr_destroy");
+            perror("freeMutex(): pthread_mutexattr_destroy");
         } else {
             m->attr_initialized = 0;
         }
     }
     if (m->created) {
         if (pthread_mutex_destroy(&m->self) != 0) {
-            perror("freeMutex: pthread_mutex_destroy");
+            perror("freeMutex(): pthread_mutex_destroy");
         } else {
             m->created = 0;
         }
@@ -191,9 +191,7 @@ void freeMutex(Mutex *m) {
 
 int lockMutex(Mutex *item) {
     if (pthread_mutex_lock(&item->self) != 0) {
-#ifdef MODE_DEBUG
-        perror("ERROR: lockMutex: error locking mutex");
-#endif 
+        perror("lockMutex()");
         return 0;
     }
     return 1;
@@ -208,14 +206,11 @@ int tryLockMutex(Mutex *item) {
 
 int unlockMutex(Mutex *item) {
     if (pthread_mutex_unlock(&item->self) != 0) {
-#ifdef MODE_DEBUG
-        perror("ERROR: unlockMutex: error unlocking mutex");
-#endif 
+        perror("unlockMutex()");
         return 0;
     }
     return 1;
 }
-
 
 void skipLine(FILE* stream) {
     int x;
@@ -227,12 +222,36 @@ void skipLine(FILE* stream) {
     }
 }
 
-int createThread(pthread_t *new_thread,void *(*thread_routine) (void *),char *cmd) {
+int createThread(pthread_t *new_thread, void *(*thread_routine) (void *), char *cmd) {
     *cmd = 0;
     if (pthread_create(new_thread, NULL, thread_routine, (void *) cmd) != 0) {
-#ifdef MODE_DEBUG
-        perror("createThread");
-#endif
+        perror("createThread()");
+        return 0;
+    }
+    return 1;
+}
+
+int createMThread(pthread_t *new_thread, void *(*thread_routine) (void *), void * data) {
+    if (pthread_create(new_thread, NULL, thread_routine, data) != 0) {
+        perror("createMThread()");
+        return 0;
+    }
+    return 1;
+}
+
+int threadCancelDisable(int *old_state) {
+    int r = pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, old_state);
+    if (r != 0) {
+        perror("threadCancelDisable()");
+        return 0;
+    }
+    return 1;
+}
+
+int threadSetCancelState(int state){
+    int r=pthread_setcancelstate(state, NULL);
+    if (r != 0) {
+        perror("threadSetCancelState()");
         return 0;
     }
     return 1;

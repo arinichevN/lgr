@@ -52,14 +52,14 @@ function conf_autostart {
 
 function build_lib {
 	gcc $1 $PLATFORM -c app.c -D_REENTRANT $DEBUG_PARAM -lpthread && \
-	gcc $1 $PLATFORM -c crc.c $DEBUG_PARAM && \
-	gcc $1 $PLATFORM -c timef.c $DEBUG_PARAM && \
-	gcc $1 $PLATFORM -c udp.c $DEBUG_PARAM && \
-	gcc $1 $PLATFORM -c util.c $DEBUG_PARAM && \
-	gcc $1 $PLATFORM -c dbl.c -DSQLITE_THREADSAFE=2 -DSQLITE_OMIT_LOAD_EXTENSION $DEBUG_PARAM -lsqlite3 && \
-	gcc $1 $PLATFORM -c configl.c -DSQLITE_THREADSAFE=2 -DSQLITE_OMIT_LOAD_EXTENSION $DEBUG_PARAM -lsqlite3 && \
+	gcc $1 $PLATFORM -c crc.c -D_REENTRANT $DEBUG_PARAM -lpthread && \
+	gcc $1 $PLATFORM -c timef.c -D_REENTRANT $DEBUG_PARAM -lpthread && \
+	gcc $1 $PLATFORM -c udp.c -D_REENTRANT $DEBUG_PARAM -lpthread && \
+	gcc $1 $PLATFORM -c util.c -D_REENTRANT $DEBUG_PARAM -lpthread && \
+	gcc $1 $PLATFORM -c dbl.c -D_REENTRANT -DSQLITE_THREADSAFE=2 -DSQLITE_OMIT_LOAD_EXTENSION $DEBUG_PARAM -lpthread -lsqlite3 && \
+	gcc $1 $PLATFORM -c configl.c -D_REENTRANT -DSQLITE_THREADSAFE=2 -DSQLITE_OMIT_LOAD_EXTENSION $DEBUG_PARAM -lpthread -lsqlite3 && \
 	cd acp && \
-	gcc $1 $PLATFORM -c main.c $DEBUG_PARAM && \
+	gcc  $PLATFORM -c main.c -D_REENTRANT $DEBUG_PARAM -lpthread && \
 	cd ../ && \
 	echo "library: making archive..." && \
 	rm -f libpac.a

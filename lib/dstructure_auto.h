@@ -4,7 +4,8 @@
 #define DEC_LIST(T) typedef struct {T *item; size_t length;size_t max_length;} T##List;
 #define DEC_LLIST(T) typedef struct {T *top; T *last; size_t length;} T##List;
 
-#define FREE_LIST(list) free((list)->item); (list)->item=NULL; (list)->length=0; (list)->max_length=0;
+#define RESET_LIST(list) (list)->item=NULL; (list)->length=0; (list)->max_length=0;
+#define FREE_LIST(list) free((list)->item); RESET_LIST(list)
 
 #define FUN_LIST_INIT(T) int init ## T ## List(T ## List *list, unsigned int n){list->max_length=list->length=0;list->item=NULL;if(n<=0){list->max_length=0;return 1;}list->item = calloc(n, sizeof *(list->item));if (list->item == NULL) {return 0;}(list)->max_length=n;return 1;}
 #define FUN_LIST_GET_BY(V,T) T *get##T##By_##V (int id, const T##List *list) {  LIST_GET_BY(V) }
@@ -32,9 +33,11 @@
 #define FUN_PIPE_PUSH(T) void pipe_push(T ## List *list, T value) {for (int i = list->length - 1; i > 0; i--) {list->item[i] = list->item[i - 1];}list->item[0] = value;}
 
 //round list. we will push first to free place, if no free place, we will update oldest items
-#define DEC_RLIST(T) typedef struct {T *item;size_t next_ind;size_t length;size_t max_length;} T ## RList;
-#define FUN_RLIST_PUSH(T) void push_ ## T ## RList(T ## RList *list, T value) {if (list->length<=0){return;}list->item[list->next_ind] = value;if (list->next_ind < list->length - 1) {list->next_ind++;} else {list->next_ind = 0;}}
-#define FUN_RLIST_INIT(T) int init_ ## T ## RList(T ## RList *list, size_t n) {list->max_length=list->length=0;list->item=NULL;if(n<=0){list->max_length=0;return 1;}size_t sz=n * sizeof *(list->item);list->item = malloc(sz);if (list->item == NULL) {return 0;}memset(list->item, 0, sz);list->max_length=n;return 1;}
+#define DEC_RLIST(T) typedef struct {T *item;size_t next_ind;size_t length;} T ## RList;
+#define FUN_RLIST_PUSH(T) void push ## T ## RList(T ## RList *list, T value) {if (list->length<=0){return;}list->item[list->next_ind] = value;if (list->next_ind < list->length - 1) {list->next_ind++;} else {list->next_ind = 0;}}
+#define FUN_RLIST_INIT(T) int init ## T ## RList(T ## RList *list, size_t n) {list->length=0;list->item=NULL;if(n<=0){return 1;}list->item = calloc(n, sizeof *(list->item));if (list->item == NULL) {return 0;}list->length=n;return 1;}
+#define RESET_RLIST(list) (list)->item=NULL; (list)->length=0;
+#define FREE_RLIST(list) free((list)->item); RESET_RLIST(list)
 
 #endif 
 

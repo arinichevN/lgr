@@ -6,9 +6,9 @@
 #define ACP_CMD_MOBILE_RING "mring"
 #define ACP_CMD_MOBILE_SEND_SMS "mssms"
 
-extern int acp_sendSMS(Peer *peer, char *phone, char *message);
+extern int acp_sendSMS(Peer *peer, const char *phone, const char *message);
 
-extern int acp_makeCall(Peer *peer, char *phone);
+extern int acp_makeCall(Peer *peer, const char *phone);
 
 #endif 
 

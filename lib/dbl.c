@@ -2,10 +2,10 @@
 int db_open(const char *path, sqlite3 **db) {
     char q[LINE_SIZE * 2];
     snprintf(q, sizeof q, "file://%s", path);
-    int rc = sqlite3_open_v2(path, db, SQLITE_OPEN_READWRITE, NULL);
+    int rc = sqlite3_open_v2(path, db, SQLITE_OPEN_READWRITE | SQLITE_OPEN_FULLMUTEX, NULL);
     if (rc != SQLITE_OK) {
 #ifdef MODE_DEBUG
-        fprintf(stderr, "db_open: path: %s, status: %d, message: %s\n", path, rc, sqlite3_errmsg(*db));
+        fprintf(stderr, "db_open(): path: %s, status: %d, message: %s\n", path, rc, sqlite3_errmsg(*db));
 #endif
         sqlite3_close(*db);
         return 0;
@@ -13,12 +13,28 @@ int db_open(const char *path, sqlite3 **db) {
     return 1;
 }
 
+int db_openR(const char *path, sqlite3 **db) {
+    char q[LINE_SIZE * 2];
+    snprintf(q, sizeof q, "file://%s", path);
+    int rc = sqlite3_open_v2(path, db, SQLITE_OPEN_READONLY |  SQLITE_OPEN_FULLMUTEX, NULL);
+    if (rc != SQLITE_OK) {
+#ifdef MODE_DEBUG
+        fprintf(stderr, "db_openR(): path: %s, status: %d, message: %s\n", path, rc, sqlite3_errmsg(*db));
+#endif
+        sqlite3_close(*db);
+        return 0;
+    }
+    //int rs= sqlite3_busy_timeout(*db, 2000);
+    return 1;
+}
+
 int db_exec(sqlite3 *db, char *q, int (*callback)(void*, int, char**, char**), void * data) {
     char *errMsg = 0;
+   
     int rc = sqlite3_exec(db, q, callback, data, &errMsg);
     if (rc != SQLITE_OK) {
 #ifdef MODE_DEBUG
-        fprintf(stderr, "db_exec: status: %d, %s\n", rc, errMsg);
+        fprintf(stderr, "db_exec(): status: %d, query: %s, message: %s\n", rc, q, errMsg);
 #endif     
         sqlite3_free(errMsg);
 
@@ -28,7 +44,7 @@ int db_exec(sqlite3 *db, char *q, int (*callback)(void*, int, char**, char**), v
 }
 
 static int getInt_callback(void *data, int argc, char **argv, char **azColName) {
-    int * item = (int *) data;
+    int * item = data;
     if (argc >= 1) {
         *item = atoi(argv[0]);
     }
@@ -39,7 +55,7 @@ int db_getInt(int *item, sqlite3 *db, char *q) {
     void *data = item;
     if (!db_exec(db, q, getInt_callback, data)) {
 #ifdef MODE_DEBUG
-        fprintf(stderr, "db_getInt: failed\n");
+        fprintf(stderr, "\tdb_getInt(): failed\n");
 #endif
         return 0;
     }

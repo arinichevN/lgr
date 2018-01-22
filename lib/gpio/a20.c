@@ -150,7 +150,7 @@ int gpioSetup() {
         fputs("gpioSetup: Unable to open /dev/mem\n", stderr);
         return 0;
     }
-    gpio = (volatile uint32_t *) mmap(0, BLOCK_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, CCU_BASE);
+    gpio = mmap(0, BLOCK_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, CCU_BASE);
     close(fd);
     if (gpio == MAP_FAILED) {
         fputs("gpioSetup: mmap failed\n", stderr);

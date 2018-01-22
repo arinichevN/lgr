@@ -54,7 +54,6 @@ typedef struct {
     socklen_t addr_size;
     int active;
     struct timespec time1;
-    Mutex mutex;
 } Peer;
 
 DEC_LIST(Peer)
@@ -147,9 +146,8 @@ DEC_FUN_LIST_INIT(FTS)
 typedef struct {
     int id;
     int remote_id;
-    Peer *source;
+    Peer peer;
     int value;
-    Mutex mutex;
     struct timespec last_read_time;
     struct timespec interval_min;
     int last_return;
@@ -160,9 +158,8 @@ DEC_FUN_LIST_INIT(SensorInt)
 typedef struct {
     int id;
     int remote_id;
-    Peer *source;
+    Peer peer;
     FTS value;
-    Mutex mutex;
     struct timespec last_read_time;
     struct timespec interval_min;
     int last_return;
@@ -173,10 +170,9 @@ DEC_FUN_LIST_INIT(SensorFTS)
 typedef struct {
     int id;
     int remote_id;
-    Peer *source;
+    Peer peer;
     float last_output; //we will keep last output value in order not to repeat the same queries to peers
     float pwm_rsl; //max duty cycle value (see lib/pid.h PWM_RSL)
-    Mutex mutex;
 } EM; //executive mechanism
 DEC_LIST(EM)
 DEC_FUN_LIST_INIT(EM)
@@ -199,22 +195,6 @@ DEC_FUN_LIST_GET_BY_IDSTR(Peer)
 DEC_FUN_LIST_GET_BY_ID(SensorFTS)
 
 DEC_FUN_LIST_GET_BY_ID(EM)
-
-DEC_FUN_LOCK(SensorInt)
-
-DEC_FUN_LOCK(SensorFTS)
-
-DEC_FUN_LOCK(Peer)
-
-DEC_FUN_LOCK(EM)
-
-DEC_FUN_UNLOCK(SensorInt)
-
-DEC_FUN_UNLOCK(SensorFTS)
-
-DEC_FUN_UNLOCK(Peer)
-
-DEC_FUN_UNLOCK(EM)
         
 extern int acp_responseStrCat(ACPResponse *item, const char *str) ;
 

@@ -21,7 +21,7 @@ int log_saveAlert(char * message, unsigned int limit, const char *db_path) {
     snprintf(q, sizeof q, "select count(*) from alert");
     if (!db_getInt(&n, db, q)) {
 #ifdef MODE_DEBUG
-        fputs("log_saveAlert: getCount failed", stderr);
+        fputs("log_saveAlert: getCount failed\n", stderr);
 #endif
         sqlite3_close(db);
         return 0;

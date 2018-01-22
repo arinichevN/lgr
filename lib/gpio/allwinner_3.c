@@ -153,7 +153,7 @@ int gpioSetup() {
         perror("gpioSetup()");
         return 0;
     }
-    gpio = (volatile uint32_t *) mmap(0, BLOCK_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, CCU_BASE);
+    gpio =  mmap(0, BLOCK_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, CCU_BASE);
     close(fd);
     if (gpio == MAP_FAILED) {
         perror("gpioSetup(): mmap failed");

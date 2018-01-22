@@ -79,10 +79,10 @@ long int getCurrTOD() {
 int ton_ts(struct timespec interval, Ton_ts *t) {
     struct timespec now, dif;
     if (!t->ready) {
-        clock_gettime(CLOCK_REALTIME, &t->start);
+        clock_gettime(LIB_CLOCK, &t->start);
         t->ready = 1;
     }
-    clock_gettime(CLOCK_REALTIME, &now);
+    clock_gettime(LIB_CLOCK, &now);
     timespecsub(&now, &t->start, &dif);
     if (timespeccmp(&dif, &interval, >)) {
         t->ready = 0;
@@ -96,13 +96,13 @@ void ton_ts_reset(Ton_ts *t){
 }
 
 void ton_ts_touch(Ton_ts *t){
-    clock_gettime(CLOCK_REALTIME, &t->start);
+    clock_gettime(LIB_CLOCK, &t->start);
     t->ready=1;
 }
 
 struct timespec getTimePassed_tv(const Ton_ts *t) {
     struct timespec now, dif;
-    clock_gettime(CLOCK_REALTIME, &now);
+    clock_gettime(LIB_CLOCK, &now);
     timespecsub(&now, &t->start, &dif);
     return dif;
 }
@@ -115,14 +115,14 @@ time_t getTimePassed(const Ton *t) {
 
 struct timespec getTimePassed_ts(struct timespec t) {
     struct timespec now, dif;
-    clock_gettime(CLOCK_REALTIME, &now);
+    clock_gettime(LIB_CLOCK, &now);
     timespecsub(&now, &t, &dif);
     return dif;
 }
 
 struct timespec getTimeRest_ts(struct timespec t_interval, struct timespec t_start) {
     struct timespec now, out, sum;
-    clock_gettime(CLOCK_REALTIME, &now);
+    clock_gettime(LIB_CLOCK, &now);
     timespecadd(&t_interval, &t_start, &sum);
     timespecsub(&sum, &now, &out);
     return out;

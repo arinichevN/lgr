@@ -216,13 +216,13 @@ int gpioSetup() {
         fputs("gpioSetup: Unable to open /dev/mem\n", stderr);
         return 0;
     }
-    gpio = (volatile uint32_t *) mmap(0, BLOCK_SIZE * 3, PROT_READ | PROT_WRITE, MAP_SHARED, fd, GPIOA_BASE);
+    gpio = mmap(0, BLOCK_SIZE * 3, PROT_READ | PROT_WRITE, MAP_SHARED, fd, GPIOA_BASE);
     if (gpio == MAP_FAILED) {
         close(fd);
         fputs("gpioSetup: mmap() failed\n", stderr);
         return 0;
     }
-    gpio_c = (volatile uint32_t *) mmap(0, 0x1000, PROT_READ | PROT_WRITE, MAP_SHARED, fd, GPIOC_BASE);
+    gpio_c = mmap(0, 0x1000, PROT_READ | PROT_WRITE, MAP_SHARED, fd, GPIOC_BASE);
     close(fd);
     if (gpio_c == MAP_FAILED) {
         fputs("gpioSetup: mmap() failed\n", stderr);

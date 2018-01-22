@@ -183,7 +183,7 @@ int config_getPeerList(PGconn *db_conn, PeerList *list, int *fd) {
     }
     list->length = PQntuples(r);
     if (list->length > 0) {
-        list->item = (Peer *) malloc(list->length * sizeof *(list->item));
+        list->item = malloc(list->length * sizeof *(list->item));
         if (list->item == NULL) {
             list->length = 0;
             fputs("config_getPeerList: ERROR: failed to allocate memory\n", stderr);
