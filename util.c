@@ -75,6 +75,7 @@ void freeProgList(ProgList * list) {
     list->last = NULL;
     list->length = 0;
 }
+
 int checkProg(const Prog *item) {
     if (item->interval_min.tv_sec < 0 || item->interval_min.tv_nsec < 0) {
         fprintf(stderr, "checkProg(): negative interval_min where prog id = %d\n", item->id);
@@ -90,6 +91,7 @@ int checkProg(const Prog *item) {
     }
     return 1;
 }
+
 char * getStateStr(char state) {
     switch (state) {
         case OFF:
@@ -140,6 +142,7 @@ int unlockProgList() {
     }
     return 1;
 }
+
 int readFTS(SensorFTS *s) {
     return acp_readSensorFTS(s);
 }
@@ -198,30 +201,35 @@ int saveFTS(Prog *item, const char *db_path) {
     return 0;
 }
 
-int bufCatProgInit(const Prog *item, ACPResponse *response) {
-    char q[LINE_SIZE];
-    snprintf(q, sizeof q, "%d" ACP_DELIMITER_COLUMN_STR "%ld" ACP_DELIMITER_COLUMN_STR "%d" ACP_DELIMITER_ROW_STR,
-            item->id,
-            item->interval_min.tv_sec,
-            item->max_rows
-            );
-
-    return acp_responseStrCat(response, q);
+int bufCatProgInit(Prog *item, ACPResponse *response) {
+    if (lockMutex(&item->mutex)) {
+        char q[LINE_SIZE];
+        snprintf(q, sizeof q, "%d" ACP_DELIMITER_COLUMN_STR "%ld" ACP_DELIMITER_COLUMN_STR "%d" ACP_DELIMITER_ROW_STR,
+                item->id,
+                item->interval_min.tv_sec,
+                item->max_rows
+                );
+        unlockMutex(&item->mutex);
+        return acp_responseStrCat(response, q);
+    }
+    return 0;
 }
 
-int bufCatProgRuntime(const Prog *item, ACPResponse *response) {
-    char q[LINE_SIZE];
-    char *state = getStateStr(item->state);
-    struct timespec tm_rest = getTimeRestTmr(item->interval_min, item->tmr);
-    snprintf(q, sizeof q, "%d" ACP_DELIMITER_COLUMN_STR "%s" ACP_DELIMITER_COLUMN_STR "%ld" ACP_DELIMITER_ROW_STR,
-            item->id,
-            state,
-            tm_rest.tv_sec
-            );
-    return acp_responseStrCat(response, q);
+int bufCatProgRuntime(Prog *item, ACPResponse *response) {
+    if (lockMutex(&item->mutex)) {
+        char q[LINE_SIZE];
+        char *state = getStateStr(item->state);
+        struct timespec tm_rest = getTimeRestTmr(item->interval_min, item->tmr);
+        snprintf(q, sizeof q, "%d" ACP_DELIMITER_COLUMN_STR "%s" ACP_DELIMITER_COLUMN_STR "%ld" ACP_DELIMITER_ROW_STR,
+                item->id,
+                state,
+                tm_rest.tv_sec
+                );
+        unlockMutex(&item->mutex);
+        return acp_responseStrCat(response, q);
+    }
+    return 0;
 }
-
-
 
 void printData(ACPResponse *response) {
     char q[LINE_SIZE];
@@ -251,7 +259,7 @@ void printData(ACPResponse *response) {
     SEND_STR("+-----------+-----------+-----------+-----------+-----------+-----------+-----------+\n")
     SEND_STR("|     id    |   kind    | interval  | row_count | remote_id |  peer_id  | time_rest |\n")
     SEND_STR("+-----------+-----------+-----------+-----------+-----------+-----------+-----------+\n")
-    
+
     PROG_LIST_LOOP_ST
             struct timespec tm_rest = getTimeRestTmr(item->interval_min, item->tmr);
     snprintf(q, sizeof q, "|%11d|%11s|%11ld|%11d|%11d|%11s|%11ld|\n",
