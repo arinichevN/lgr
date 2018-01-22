@@ -198,14 +198,6 @@ int saveFTS(Prog *item, const char *db_path) {
     return 0;
 }
 
-struct timespec getTimeRestR(const Prog *item) {
-    struct timespec out = {-1, -1};
-    if (item->tmr.ready) {
-        out = getTimeRest_ts(item->interval_min, item->tmr.start);
-    }
-    return out;
-}
-
 int bufCatProgInit(const Prog *item, ACPResponse *response) {
     char q[LINE_SIZE];
     snprintf(q, sizeof q, "%d" ACP_DELIMITER_COLUMN_STR "%ld" ACP_DELIMITER_COLUMN_STR "%d" ACP_DELIMITER_ROW_STR,
@@ -220,7 +212,7 @@ int bufCatProgInit(const Prog *item, ACPResponse *response) {
 int bufCatProgRuntime(const Prog *item, ACPResponse *response) {
     char q[LINE_SIZE];
     char *state = getStateStr(item->state);
-    struct timespec tm_rest = getTimeRestR(item);
+    struct timespec tm_rest = getTimeRestTmr(item->interval_min, item->tmr);
     snprintf(q, sizeof q, "%d" ACP_DELIMITER_COLUMN_STR "%s" ACP_DELIMITER_COLUMN_STR "%ld" ACP_DELIMITER_ROW_STR,
             item->id,
             state,
@@ -261,7 +253,7 @@ void printData(ACPResponse *response) {
     SEND_STR("+-----------+-----------+-----------+-----------+-----------+-----------+-----------+\n")
     
     PROG_LIST_LOOP_ST
-            struct timespec tm_rest = getTimeRest_ts(item->interval_min, item->tmr.start);
+            struct timespec tm_rest = getTimeRestTmr(item->interval_min, item->tmr);
     snprintf(q, sizeof q, "|%11d|%11s|%11ld|%11d|%11d|%11s|%11ld|\n",
             item->id,
             item->kind,
