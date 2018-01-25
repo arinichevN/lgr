@@ -50,8 +50,5 @@ extern int config_getPhoneNumberListG(S1List *list, int group_id, const char *db
 
 extern int config_getPhoneNumberListO(S1List *list, const char *db_path);
 
-extern int config_saveProgLoad(int id, int v, sqlite3 *db, const char *db_path) ;
-
-extern int config_saveProgEnable(int id, int v, sqlite3 *dbl, const char *db_path) ;
 #endif 
 

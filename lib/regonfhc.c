@@ -160,7 +160,7 @@ void regonfhc_control(RegOnfHC *item) {
     char *state_r = reg_getStateStr(item->state_r);
     char *state_onf = reg_getStateStr(item->state_onf);
     struct timespec tm1 = getTimeRestTmr(item->change_gap, item->tmr);
-    printf("state=%s state_onf=%s EM_state=%s goal=%.1f delta_h=%.1f delta_c=%.1f real=%.1f real_st=%d out=%.1f change_time=%ldsec\n", state, state_onf, state_r, item->goal, item->heater.delta, item->cooler.delta, SNSR_VAL, item->sensor.value.state, item->output, tm1.tv_sec);
+    printf("state=%s state_onf=%s EM_state=%s goal=%.1f delta_h/c=%.1f/%.1f real=%.1f real_st=%d out=%.1f change_time=%ldsec\n", state, state_onf, state_r, item->goal, item->heater.delta, item->cooler.delta, SNSR_VAL, item->sensor.value.state, item->output, tm1.tv_sec);
 #endif
 }
 

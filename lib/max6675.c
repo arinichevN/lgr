@@ -41,7 +41,7 @@ int max6675_read(float *result, int sclk, int cs, int miso) {
 #endif
     if (v & 0x4) {
 #ifdef MODE_DEBUG
-        fputs("max6675_read: thermocouple input is open\n", stderr);
+        fprintf(stderr,"%s(): thermocouple input is open\n", __FUNCTION__);
 #endif
         return 0;
     }

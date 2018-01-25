@@ -191,7 +191,7 @@ void regpidonfhc_control(RegPIDOnfHC *item) {
     char *heater_mode = reg_getStateStr(item->heater.mode);
     char *cooler_mode = reg_getStateStr(item->cooler.mode);
     struct timespec tm1 = getTimeRestTmr(item->change_gap, item->tmr);
-    printf("state=%s state_onf=%s EM_state=%s hmode=%s cmode=%s goal=%.1f real=%.1f out=%.1f change_time=%ldsec\n", state, state_onf, state_r,heater_mode, cooler_mode, item->goal, SNSR_VAL, item->output, tm1.tv_sec);
+    printf("state=%s state_onf=%s EM_state=%s mode_h/c=%s/%s goal=%.1f real=%.1f out=%.1f change_time=%ldsec\n", state, state_onf, state_r,heater_mode, cooler_mode, item->goal, SNSR_VAL, item->output, tm1.tv_sec);
 #endif
 }
 

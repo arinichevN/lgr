@@ -15,7 +15,7 @@ struct timespec cycle_duration = {0, 0};
 
 I1List i1l;
 
-Mutex progl_mutex = {.created = 0, .attr_initialized = 0};
+Mutex progl_mutex = MUTEX_INITIALIZER;
 Mutex db_log_mutex = MUTEX_INITIALIZER;
 
 PeerList peer_list;
@@ -142,7 +142,7 @@ void serverRun(int *state, int init_state) {
                 if (lockMutex(&item->mutex)) {
                     if (item->state == OFF) {
                         item->state = INIT;
-                        config_saveProgEnable(item->id, 1, NULL, db_data_path);
+                        db_saveTableFieldInt("prog","enable",item->id, 1, NULL, db_data_path);
                     }
                     unlockMutex(&item->mutex);
                 }
@@ -156,7 +156,7 @@ void serverRun(int *state, int init_state) {
                 if (lockMutex(&item->mutex)) {
                     if (item->state != OFF) {
                         item->state = DISABLE;
-                        config_saveProgEnable(item->id, 0, NULL, db_data_path);
+                        db_saveTableFieldInt("prog","enable",item->id, 0, NULL, db_data_path);
                     }
                     unlockMutex(&item->mutex);
                 }

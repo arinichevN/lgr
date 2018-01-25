@@ -24,7 +24,7 @@ void strnline(char **v) {
 char * bufCat(char * buf, const char *str, size_t size) {
     if (strlen(buf) + strlen(str) + 1 >= size) {
 #ifdef MODE_DEBUG
-        fputs("bufCat: buffer overflow\n", stderr);
+        fprintf(stderr,"%s(): buffer overflow\n", __FUNCTION__);
 #endif
         return NULL;
     }
@@ -101,12 +101,14 @@ int aeq(double v1, double v2, double acr) {
 int get_rand_fu(void *buf, size_t nbytes) {
     int fd = open("/dev/urandom", O_RDONLY);
     if (fd == -1) {
-        perror("get_urand(): open /dev/urandom");
+        fprintf(stderr, "%s(): ", __FUNCTION__);
+        perror("open()");
         return 0;
     }
     ssize_t n = read(fd, buf, nbytes);
     if (n == -1) {
-        perror("get_urand(): read");
+        fprintf(stderr, "%s(): ", __FUNCTION__);
+        perror("read()");
         return 0;
     }
     close(fd);

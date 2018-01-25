@@ -105,7 +105,7 @@ int deleteProgById(int id, ProgList *list, char *db_data_path) {
             }
             list->length--;
             stopProgThread(curr);
-            config_saveProgLoad(curr->id, 0, NULL, db_data_path);
+            db_saveTableFieldInt("prog","load",curr->id, 0, NULL, db_data_path);
             freeProg(curr);
 #ifdef MODE_DEBUG
             printf("prog with id: %d deleted from prog_list\n", id);
@@ -197,7 +197,7 @@ int getProg_callback(void *d, int argc, char **argv, char **azColName) {
         item->state = DISABLE;
     }
     if (!load) {
-        config_saveProgLoad(item->id, 1, data->db_data, NULL);
+        db_saveTableFieldInt("prog","load",item->id, 1, data->db_data, NULL);
     }
     return EXIT_SUCCESS;
 }
@@ -205,15 +205,17 @@ int getProg_callback(void *d, int argc, char **argv, char **azColName) {
 int getProgByIdFDB(int prog_id, Prog *item, PeerList *peer_list, sqlite3 *dbl, const char *db_path) {
     if (dbl != NULL && db_path != NULL) {
 #ifdef MODE_DEBUG
-        fprintf(stderr, "getProgByIdFDB(): db xor db_path expected\n");
+        fprintf(stderr, "%s(): dbl xor db_path expected\n", __FUNCTION__);
 #endif
         return 0;
     }
     sqlite3 *db;
+    int close =0;
     if (db_path != NULL) {
         if (!db_open(db_path, &db)) {
             return 0;
         }
+        close =1;
     } else {
         db = dbl;
     }
@@ -222,12 +224,12 @@ int getProgByIdFDB(int prog_id, Prog *item, PeerList *peer_list, sqlite3 *dbl, c
     snprintf(q, sizeof q, "select " PROG_FIELDS " from prog where id=%d", prog_id);
     if (!db_exec(db, q, getProg_callback, &data)) {
 #ifdef MODE_DEBUG
-        fprintf(stderr, "getProgByIdFDB(): query failed: %s\n", q);
+        fprintf(stderr, "%s(): query failed\n", __FUNCTION__);
 #endif
-        sqlite3_close(db);
+        if(close)sqlite3_close(db);
         return 0;
     }
-    sqlite3_close(db);
+    if(close)sqlite3_close(db);
     return 1;
 }
 

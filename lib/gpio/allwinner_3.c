@@ -150,13 +150,15 @@ int checkPin(int pin) {
 int gpioSetup() {
     int fd;
     if ((fd = open("/dev/mem", O_RDWR | O_SYNC | O_CLOEXEC)) < 0) {
-        perror("gpioSetup()");
+        fprintf(stderr, "%s(): ", __FUNCTION__);
+        perror("open()");
         return 0;
     }
     gpio =  mmap(0, BLOCK_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, CCU_BASE);
     close(fd);
     if (gpio == MAP_FAILED) {
-        perror("gpioSetup(): mmap failed");
+        fprintf(stderr, "%s(): ", __FUNCTION__);
+        perror("mmap()");
         return 0;
     }
     makeData();

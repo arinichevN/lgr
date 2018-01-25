@@ -6,7 +6,7 @@ void acp_lck_waitUnlock(Peer *peer, unsigned int interval_us) {
         switch (state) {
             case 1:
 #ifdef MODE_DEBUG
-                puts("acp_waitUnlock: sending ping request to locker...");
+                printf("%s(): sending ping request to locker...\n", __FUNCTION__);
 #endif
                 acp_pingPeer(peer);
                 if (peer->active) {
@@ -15,7 +15,7 @@ void acp_lck_waitUnlock(Peer *peer, unsigned int interval_us) {
                 break;
             case 2:
 #ifdef MODE_DEBUG
-                puts("acp_waitUnlock: sending unlock request to locker...");
+                printf("%s(): sending unlock request to locker...\n", __FUNCTION__);
 #endif
                 if (acp_requestSendUnrequitedCmd(ACP_CMD_LCK_UNLOCK, peer)) {
                     state = 3;
@@ -24,7 +24,7 @@ void acp_lck_waitUnlock(Peer *peer, unsigned int interval_us) {
             case 3:
             {
 #ifdef MODE_DEBUG
-                puts("acp_waitUnlock: checking locker to be unlocked...");
+                printf("%s(): checking locker to be unlocked...\n", __FUNCTION__);
 #endif
                 int locked = 1;
                 if (acp_sendCmdGetInt(peer, ACP_CMD_GET_DATA, &locked)) {
@@ -36,7 +36,7 @@ void acp_lck_waitUnlock(Peer *peer, unsigned int interval_us) {
             }
             case 4:
 #ifdef MODE_DEBUG
-                puts("acp_waitUnlock: done!");
+                printf("%s(): done!\n", __FUNCTION__);
 #endif
                 return;
                 break;

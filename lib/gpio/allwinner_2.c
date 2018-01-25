@@ -194,14 +194,16 @@ static void makeData() {
 int gpioSetup() {
     int fd;
     if ((fd = open("/dev/mem", O_RDWR | O_SYNC | O_CLOEXEC)) < 0) {
-        perror("gpioSetup()");
+        fprintf(stderr, "%s(): ", __FUNCTION__);
+        perror("open()");
         return 0;
     }
     gpio_lm_buf =  mmap(0, BLOCK_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, GPIO_BASE_LM_BP);
     gpio_buf =  mmap(0, BLOCK_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, GPIO_BASE_BP);
     close(fd);
     if (( gpio_buf == MAP_FAILED) || ( gpio_lm_buf == MAP_FAILED)) {
-        perror("gpioSetup(): mmap failed");
+        fprintf(stderr, "%s(): ", __FUNCTION__);
+        perror("mmap()");
         return 0;
     }
     makeData();

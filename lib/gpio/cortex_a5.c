@@ -213,19 +213,22 @@ int gpioSetup() {
 
     int fd;
     if ((fd = open("/dev/mem", O_RDWR | O_SYNC | O_CLOEXEC)) < 0) {
-        fputs("gpioSetup: Unable to open /dev/mem\n", stderr);
+        fprintf(stderr, "%s(): ", __FUNCTION__);
+        perror("open()");
         return 0;
     }
     gpio = mmap(0, BLOCK_SIZE * 3, PROT_READ | PROT_WRITE, MAP_SHARED, fd, GPIOA_BASE);
     if (gpio == MAP_FAILED) {
         close(fd);
-        fputs("gpioSetup: mmap() failed\n", stderr);
+        fprintf(stderr, "%s(): ", __FUNCTION__);
+        perror("mmap1()");
         return 0;
     }
     gpio_c = mmap(0, 0x1000, PROT_READ | PROT_WRITE, MAP_SHARED, fd, GPIOC_BASE);
     close(fd);
     if (gpio_c == MAP_FAILED) {
-        fputs("gpioSetup: mmap() failed\n", stderr);
+        fprintf(stderr, "%s(): ", __FUNCTION__);
+        perror("mmap2()");
         return 0;
     }
 
@@ -251,7 +254,6 @@ void pinWrite(int pin, int value) {
     else if (bank == 3)
         base_address = GPIOD_BASE;
     else {
-        printf("Bad pin number!\n");
         return;
     }
     if (value)
@@ -282,7 +284,6 @@ int pinRead(int pin) {
     else if (bank == 3)
         base_address = GPIOD_BASE;
     else {
-        printf("Bad pin number\n");
         return -1;
     }
     phys_OEN_R = base_address + OEN_VAL_REGISTER;
@@ -309,7 +310,6 @@ void pinLow(int pin) {
     else if (bank == 3)
         base_address = GPIOD_BASE;
     else {
-        printf("Bad pin number!\n");
         return;
     }
     phyaddr = base_address + CLR_REGISTER;
@@ -330,7 +330,6 @@ void pinHigh(int pin) {
     else if (bank == 3)
         base_address = GPIOD_BASE;
     else {
-        printf("Bad pin number!\n");
         return;
     }
     phyaddr = base_address + SET_REGISTER;
@@ -352,7 +351,6 @@ void pinModeIn(int pin) {
     else if (bank == 3) /* group D */
         base_address = GPIOD_BASE;
     else {
-        printf("Bad pin number\n");
         return;
     }
     phyaddr = base_address + SET_IN_REGISTER;
@@ -373,7 +371,6 @@ void pinModeOut(int pin) {
     else if (bank == 3)
         base_address = GPIOD_BASE;
     else {
-        printf("Bad pin number\n");
         return;
     }
     ca5_writeR(GPIO_BIT(index), phyaddr);

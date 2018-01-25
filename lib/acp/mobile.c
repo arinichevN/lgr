@@ -8,7 +8,7 @@ int acp_sendSMS(Peer *peer, const char *phone, const char *message) {
     S2List data = {.item = di, .length = 1, .max_length = 1};
     if (!acp_requestSendUnrequitedS2List(ACP_CMD_MOBILE_SEND_SMS, &data, peer)) {
 #ifdef MODE_DEBUG
-        fprintf(stderr, "ERROR: acp_sendSMS: failed to send request where peer.id = %s\n", peer->id);
+        fprintf(stderr, "%s(): failed to send request where peer.id = %s\n",__FUNCTION__, peer->id);
 #endif
         return 0;
     }
@@ -21,9 +21,10 @@ int acp_makeCall(Peer *peer, const char *phone) {
         S1List data = {.item = di, .length = 1, .max_length = 1};
         if (!acp_requestSendUnrequitedS1List(ACP_CMD_MOBILE_RING, &data, peer)) {
 #ifdef MODE_DEBUG
-            fprintf(stderr, "ERROR: acp_makeCall: failed to send request where peer.id = %s\n", peer->id);
+            fprintf(stderr, "%s(): failed to send request where peer.id = %s\n",__FUNCTION__, peer->id);
 #endif
             return 0;
         }
         return 1;
 }
+

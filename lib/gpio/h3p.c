@@ -218,13 +218,15 @@ int checkPin(int pin) {
 int gpioSetup() {
     int fd;
     if ((fd = open("/dev/mem", O_RDWR | O_SYNC | O_CLOEXEC)) < 0) {
-        fputs("gpioSetup: Unable to open /dev/mem\n", stderr);
+        fprintf(stderr, "%s(): ", __FUNCTION__);
+        perror("open()");
         return 0;
     }
     base =  mmap(0, 1024, PROT_READ | PROT_WRITE, MAP_SHARED, fd, PIO_BASE);
     close(fd);
     if (base == MAP_FAILED) {
-        fputs("gpioSetup: mmap() failed\n", stderr);
+       fprintf(stderr, "%s(): ", __FUNCTION__);
+        perror("mmap()");
         return 0;
     }
     makeGpioDataOffset();

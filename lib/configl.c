@@ -233,6 +233,9 @@ int config_getPeerList(PeerList *list, int *fd, const char *db_path) {
     RESET_LIST(list)
     sqlite3 *db;
     if (!db_openR(db_path, &db)) {
+#ifdef MODE_DEBUG
+        fprintf(stderr, "%s(): failed to open database\n", __FUNCTION__);
+#endif
         return 0;
     }
     int n = 0;
@@ -251,7 +254,7 @@ int config_getPeerList(PeerList *list, int *fd, const char *db_path) {
     char *q = "select id, port, ip_addr FROM peer";
     if (!db_exec(db, q, getPeerList_callback, &data)) {
 #ifdef MODE_DEBUG
-        fprintf(stderr, "config_getPeerList(): query failed\n");
+        fprintf(stderr, "%s(): query failed\n", __FUNCTION__);
 #endif
         sqlite3_close(db);
         FREE_LIST(list);
@@ -269,6 +272,9 @@ int config_getSensorFTSList(SensorFTSList *list, PeerList *peer_list, const char
     RESET_LIST(list)
     sqlite3 *db;
     if (!db_openR(db_path, &db)) {
+#ifdef MODE_DEBUG
+        fprintf(stderr, "%s(): failed to open database\n", __FUNCTION__);
+#endif
         return 0;
     }
     int n = 0;
@@ -287,7 +293,7 @@ int config_getSensorFTSList(SensorFTSList *list, PeerList *peer_list, const char
     char *q = "select sensor_id, peer_id, remote_id FROM sensor_mapping";
     if (!db_exec(db, q, getSensorFTSList_callback, &data)) {
 #ifdef MODE_DEBUG
-        fprintf(stderr, "config_getSensorFTSList(): query failed\n");
+        fprintf(stderr, "%s(): query failed\n", __FUNCTION__);
 #endif
         sqlite3_close(db);
         FREE_LIST(list);
@@ -305,6 +311,9 @@ int config_getEMList(EMList *list, PeerList *peer_list, const char *db_path) {
     RESET_LIST(list)
     sqlite3 *db;
     if (!db_openR(db_path, &db)) {
+#ifdef MODE_DEBUG
+        fprintf(stderr, "%s(): failed to open database\n", __FUNCTION__);
+#endif
         return 0;
     }
     int n = 0;
@@ -325,7 +334,7 @@ int config_getEMList(EMList *list, PeerList *peer_list, const char *db_path) {
     char *q = "select em_id, peer_id, remote_id, pwm_rsl FROM em_mapping";
     if (!db_exec(db, q, getEMList_callback, &data)) {
 #ifdef MODE_DEBUG
-        fprintf(stderr, "config_getEMList(): query failed\n");
+        fprintf(stderr, "%s(): query failed\n", __FUNCTION__);
 #endif
         sqlite3_close(db);
         FREE_LIST(list);
@@ -346,7 +355,7 @@ int config_getSensorFTS(SensorFTS *item, int sensor_id, const PeerList *pl, sqli
     snprintf(q, sizeof q, "select sensor_id, peer_id, remote_id from sensor_mapping where sensor_id=%d", sensor_id);
     if (!db_exec(db, q, getSensorFTS_callback, &data)) {
 #ifdef MODE_DEBUG
-        fprintf(stderr, "config_getSensorFTS: query failed\n");
+        fprintf(stderr, "%s(): query failed\n", __FUNCTION__);
 #endif
         return 0;
     }
@@ -361,7 +370,7 @@ int config_getEM(EM *item, int em_id, const PeerList *pl, sqlite3 *db) {
     snprintf(q, sizeof q, "select peer_id, remote_id, pwm_rsl from em_mapping where em_id=%d", em_id);
     if (!db_exec(db, q, getEM_callback, &data)) {
 #ifdef MODE_DEBUG
-        fprintf(stderr, "config_getEM: query failed\n");
+        fprintf(stderr, "%s(): query failed\n", __FUNCTION__);
 #endif
         return 0;
     }
@@ -372,13 +381,16 @@ int config_getEM(EM *item, int em_id, const PeerList *pl, sqlite3 *db) {
 int config_getPeer(Peer *item, const char * peer_id, int *fd, sqlite3 *dbl, const char *db_path) {
     if (dbl != NULL && db_path != NULL) {
 #ifdef MODE_DEBUG
-        fprintf(stderr, "config_getPeer(): db xor db_path expected\n");
+        fprintf(stderr, "%s(): dbl xor db_path expected\n", __FUNCTION__);
 #endif
         return 0;
     }
     sqlite3 *db;
     if (db_path != NULL) {
         if (!db_openR(db_path, &db)) {
+#ifdef MODE_DEBUG
+            fprintf(stderr, "%s(): failed to open database\n", __FUNCTION__);
+#endif
             return 0;
         }
     } else {
@@ -391,7 +403,7 @@ int config_getPeer(Peer *item, const char * peer_id, int *fd, sqlite3 *dbl, cons
     snprintf(q, sizeof q, "SELECT id, port, ip_addr FROM peer where id='%s'", peer_id);
     if (!db_exec(db, q, getPeerList_callback, &data)) {
 #ifdef MODE_DEBUG
-        fprintf(stderr, "config_getPeer(): query failed\n");
+        fprintf(stderr, "%s(): query failed\n", __FUNCTION__);
 #endif
         if (db_path != NULL) {
             sqlite3_close(db);
@@ -403,7 +415,7 @@ int config_getPeer(Peer *item, const char * peer_id, int *fd, sqlite3 *dbl, cons
     }
     if (data.list->length != 1) {
 #ifdef MODE_DEBUG
-        fprintf(stderr, "config_getPeer: can't get peer: %s\n", peer_id);
+        fprintf(stderr, "%s(): can't get peer: %s\n", __FUNCTION__, peer_id);
 #endif
         return 0;
     }
@@ -415,6 +427,9 @@ int config_getPhoneNumberListG(S1List *list, int group_id, const char *db_path) 
     RESET_LIST(list)
     sqlite3 *db;
     if (!db_openR(db_path, &db)) {
+#ifdef MODE_DEBUG
+        fprintf(stderr, "%s(): failed to open database\n", __FUNCTION__);
+#endif
         return 0;
     }
     char q[LINE_SIZE];
@@ -445,7 +460,7 @@ int config_getPhoneNumberListG(S1List *list, int group_id, const char *db_path) 
     snprintf(q, sizeof q, "select value from phone_number where group_id=%d", group_id);
     if (!db_exec(db, q, getPhoneNumber_callback, list)) {
 #ifdef MODE_DEBUG
-        fprintf(stderr, "config_getPhoneNumberList: query failed\n");
+        fprintf(stderr, "%s(): query failed\n", __FUNCTION__);
 #endif
         sqlite3_close(db);
         FREE_LIST(list);
@@ -453,7 +468,7 @@ int config_getPhoneNumberListG(S1List *list, int group_id, const char *db_path) 
     }
     if (list->length != n) {
 #ifdef MODE_DEBUG
-        fprintf(stderr, "config_getPhoneNumberList: bad length: %d < %d\n", list->length, n);
+        fprintf(stderr, "%s(): bad length: %d < %d\n", __FUNCTION__, list->length, n);
 #endif
         sqlite3_close(db);
         FREE_LIST(list);
@@ -467,6 +482,9 @@ int config_getPhoneNumberListO(S1List *list, const char *db_path) {
     RESET_LIST(list)
     sqlite3 *db;
     if (!db_openR(db_path, &db)) {
+#ifdef MODE_DEBUG
+        fprintf(stderr, "%s(): failed to open database\n", __FUNCTION__);
+#endif
         return 0;
     }
     int n = 0;
@@ -494,7 +512,7 @@ int config_getPhoneNumberListO(S1List *list, const char *db_path) {
     memset(list->item, 0, list_size);
     if (!db_exec(db, "select value from phone_number order by group_id", getPhoneNumber_callback, list)) {
 #ifdef MODE_DEBUG
-        fprintf(stderr, "config_getPhoneNumberListO: select query failed\n");
+        fprintf(stderr, "%s(): query failed\n", __FUNCTION__);
 #endif
         sqlite3_close(db);
         FREE_LIST(list);
@@ -502,64 +520,12 @@ int config_getPhoneNumberListO(S1List *list, const char *db_path) {
     }
     if (list->length != n) {
 #ifdef MODE_DEBUG
-        fprintf(stderr, "config_getPhoneNumberListO: bad length: %d < %d\n", list->length, n);
+        fprintf(stderr, "%s(): bad length: %d < %d\n", __FUNCTION__, list->length, n);
 #endif
         sqlite3_close(db);
         FREE_LIST(list);
         return 0;
     }
     sqlite3_close(db);
-    return 1;
-}
-
-int config_saveProgLoad(int id, int v, sqlite3 *dbl, const char *db_path) {
-    if (dbl != NULL && db_path != NULL) {
-#ifdef MODE_DEBUG
-        fprintf(stderr, "config_saveProgLoad(): db xor db_path expected\n");
-#endif
-        return 0;
-    }
-    sqlite3 *db;
-    if (db_path != NULL) {
-        if (!db_open(db_path, &db)) {
-            return 0;
-        }
-    } else {
-        db = dbl;
-    }
-    char q[LINE_SIZE];
-    snprintf(q, sizeof q, "update prog set load=%d where id=%d", v, id);
-    if (!db_exec(db, q, 0, 0)) {
-#ifdef MODE_DEBUG
-        fprintf(stderr, "config_saveProgLoad(): query failed\n");
-#endif
-        return 0;
-    }
-    return 1;
-}
-
-int config_saveProgEnable(int id, int v, sqlite3 *dbl, const char *db_path) {
-    if (dbl != NULL && db_path != NULL) {
-#ifdef MODE_DEBUG
-        fprintf(stderr, "config_saveProgEnable(): db xor db_path expected\n");
-#endif
-        return 0;
-    }
-    sqlite3 *db;
-    if (db_path != NULL) {
-        if (!db_open(db_path, &db)) {
-            return 0;
-        }
-    } else {
-        db = dbl;
-    }
-    char q[LINE_SIZE];
-    snprintf(q, sizeof q, "update prog set enable=%d where id=%d", v, id);
-    if (!db_exec(db, q, 0, 0)) {
-#ifdef MODE_DEBUG
-        fprintf(stderr, "config_saveProgEnable(): query failed\n");
-#endif
-        return 0;
-    }
     return 1;
 }

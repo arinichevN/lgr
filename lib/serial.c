@@ -75,6 +75,8 @@ int serialOpen(const char *device, const int baud) {
     }
 
     if ((fd = open(device, O_RDWR | O_NOCTTY | O_NDELAY | O_NONBLOCK)) == -1) {
+        fprintf(stderr, "%s(): ", __FUNCTION__);
+        perror("open()");
         return -1;
     }
 
@@ -122,6 +124,8 @@ void serialClose(const int fd) {
 int serialAvailable(const int fd) {
     int result;
     if (ioctl(fd, FIONREAD, &result) == -1) {
+        fprintf(stderr, "%s(): ", __FUNCTION__);
+        perror("ioctl()");
         return 0;
     }
     return result;

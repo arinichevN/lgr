@@ -108,7 +108,6 @@ volatile uint32_t *pmu;
 
 int gpio_pin[PIN_NUM];
 
-
 static void pinModeToGPIO(int pin) {
     switch (pin) {
             //GPIO0
@@ -181,7 +180,7 @@ static void pinModeToGPIO(int pin) {
             *(grf + GRF_GPIO8B_IOMUX / 4) = (*(grf + GRF_GPIO8B_IOMUX / 4) | (0x03 << ((pin % 8)*2 + 16))) & (~(0x03 << ((pin % 8)*2)));
             break;
         default:
-            fputs("pinModeToGPIO(): bad pin\n", stderr);
+            break;
     }
 }
 
@@ -335,7 +334,7 @@ void pinPUD(int pin, int pud) {
             *(grf + GRF_GPIO8B_P / 4) = (*(grf + GRF_GPIO8B_P / 4) | (0x03 << ((pin % 8)*2 + 16))) & (~(0x03 << ((pin % 8)*2))) | (bit1 << ((pin % 8)*2 + 1)) | (bit0 << ((pin % 8)*2));
             break;
         default:
-            fputs("pinPUD(): bad pin\n", stderr);
+            break;
     }
 }
 
@@ -384,28 +383,32 @@ static void makeData() {
 int gpioSetup() {
     int fd;
     if ((fd = open("/dev/mem", O_RDWR | O_SYNC | O_CLOEXEC)) < 0) {
-        perror("gpioSetup()");
+        fprintf(stderr, "%s(): ", __FUNCTION__);
+        perror("open()");
         return 0;
     }
 
     for (int i = 0; i < GPIO_BANK_NUM; i++) {
-        gpio[i] =  mmap(NULL, PAGE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, RK3288_GPIO(i));
-        if ( gpio[i] == MAP_FAILED) {
-            perror("gpioSetup(): gpio mmap failed");
+        gpio[i] = mmap(NULL, PAGE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, RK3288_GPIO(i));
+        if (gpio[i] == MAP_FAILED) {
+            fprintf(stderr, "%s(): ", __FUNCTION__);
+            perror("mmap1()");
             close(fd);
             return 0;
         }
     }
 
-    grf =  mmap(NULL, PAGE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, RK3288_GRF_PHYS);
-    if ( grf == MAP_FAILED) {
-        perror("gpioSetup(): grf mmap failed");
+    grf = mmap(NULL, PAGE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, RK3288_GRF_PHYS);
+    if (grf == MAP_FAILED) {
+        fprintf(stderr, "%s(): ", __FUNCTION__);
+        perror("mmap2()");
         close(fd);
         return 0;
     }
-    pmu =  mmap(NULL, PAGE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, RK3288_PMU);
-    if ( pmu == MAP_FAILED) {
-        perror("gpioSetup(): pmu mmap failed");
+    pmu = mmap(NULL, PAGE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, RK3288_PMU);
+    if (pmu == MAP_FAILED) {
+        fprintf(stderr, "%s(): ", __FUNCTION__);
+        perror("mmap3()");
         close(fd);
         return 0;
     }
