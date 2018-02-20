@@ -1,18 +1,4 @@
 
-#include <errno.h>
-#include <stdio.h>
-#include <stdint.h>
-#include <string.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <errno.h>
-#include <sys/mman.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-
-#include <sys/types.h>
-#include <stddef.h>
 #include "pinout.h"
 
 #define GPIO_REG_CFG(B, N, I) ((B) + (N)*0x24 + ((I)<<2) + 0x00)
@@ -146,7 +132,7 @@ int gpioSetup() {
     int pagesize = sysconf(_SC_PAGESIZE);
     int fd;
     if ((fd = open("/dev/mem", O_RDWR | O_SYNC | O_CLOEXEC)) < 0) {
-        fprintf(stderr, "%s(): ", __FUNCTION__);
+        fprintf(stderr, "%s(): ", __func__);
         perror("open()");
         return 0;
     }
@@ -155,7 +141,7 @@ int gpioSetup() {
     gpio_buf = mmap(NULL, (0x800 + pagesize - 1) & ~(pagesize - 1), PROT_WRITE | PROT_READ, MAP_SHARED, fd, addr);
     close(fd);
     if (gpio_buf == MAP_FAILED) {
-        fprintf(stderr, "%s(): ", __FUNCTION__);
+        fprintf(stderr, "%s(): ", __func__);
         perror("mmap()");
         return 0;
     }

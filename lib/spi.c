@@ -79,17 +79,17 @@ int wiringPiSPISetup(int channel, int speed) {
     //	copying example code I've seen online...
 
     if (ioctl(fd, SPI_IOC_WR_MODE, &spiMode) < 0) {
-        fprintf(stderr, "%s(): ", __FUNCTION__);
+        fprintf(stderr, "%s(): ", __func__);
         perror("SPI Mode Change failure");
         return 0;
     }
     if (ioctl(fd, SPI_IOC_WR_BITS_PER_WORD, &spiBPW) < 0) {
-        fprintf(stderr, "%s(): ", __FUNCTION__);
+        fprintf(stderr, "%s(): ", __func__);
         perror("SPI BPW Change failure");
         return 0;
     }
     if (ioctl(fd, SPI_IOC_WR_MAX_SPEED_HZ, &speed) < 0) {
-        fprintf(stderr, "%s(): ", __FUNCTION__);
+        fprintf(stderr, "%s(): ", __func__);
         perror("SPI Speed Change failure");
         return 0;
     }

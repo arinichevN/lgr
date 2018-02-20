@@ -1,18 +1,4 @@
 
-#include <errno.h>
-#include <stdio.h>
-#include <stdint.h>
-#include <string.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <errno.h>
-#include <sys/mman.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-
-#include <sys/types.h>
-#include <stddef.h>
 #include "pinout.h"
 
 #define PAGE_SIZE  (4*1024)
@@ -383,7 +369,7 @@ static void makeData() {
 int gpioSetup() {
     int fd;
     if ((fd = open("/dev/mem", O_RDWR | O_SYNC | O_CLOEXEC)) < 0) {
-        fprintf(stderr, "%s(): ", __FUNCTION__);
+        fprintf(stderr, "%s(): ", __func__);
         perror("open()");
         return 0;
     }
@@ -391,7 +377,7 @@ int gpioSetup() {
     for (int i = 0; i < GPIO_BANK_NUM; i++) {
         gpio[i] = mmap(NULL, PAGE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, RK3288_GPIO(i));
         if (gpio[i] == MAP_FAILED) {
-            fprintf(stderr, "%s(): ", __FUNCTION__);
+            fprintf(stderr, "%s(): ", __func__);
             perror("mmap1()");
             close(fd);
             return 0;
@@ -400,14 +386,14 @@ int gpioSetup() {
 
     grf = mmap(NULL, PAGE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, RK3288_GRF_PHYS);
     if (grf == MAP_FAILED) {
-        fprintf(stderr, "%s(): ", __FUNCTION__);
+        fprintf(stderr, "%s(): ", __func__);
         perror("mmap2()");
         close(fd);
         return 0;
     }
     pmu = mmap(NULL, PAGE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, RK3288_PMU);
     if (pmu == MAP_FAILED) {
-        fprintf(stderr, "%s(): ", __FUNCTION__);
+        fprintf(stderr, "%s(): ", __func__);
         perror("mmap3()");
         close(fd);
         return 0;

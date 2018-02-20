@@ -94,9 +94,7 @@ int dht22_read(int pin, float *t, float *h) {
     puts("");
 #endif
     if (j < 40) {
-#ifdef MODE_DEBUG
-        fprintf(stderr, "%s(): j=%d but j>=40 expected where pin=%d\n",__FUNCTION__, j, pin);
-#endif
+        printde("j=%d but j>=40 expected where pin=%d\n", j, pin);
         return 0;
     }
     if ((data[4] == ((data[0] + data[1] + data[2] + data[3]) & 0xFF))) {
@@ -109,9 +107,7 @@ int dht22_read(int pin, float *t, float *h) {
         }
         return 1;
     }
-#ifdef MODE_DEBUG
-    fprintf(stderr, "%s(): bad crc where pin=%d\n",__FUNCTION__, pin);
-#endif
+    printde("bad crc where pin=%d\n", pin);
     return 0;
 
 }

@@ -9,6 +9,8 @@
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 
+#include "common.h"
+
 extern int initServer(int *fd, int port);
 
 extern void freeSocketFd(int *udp_fd);

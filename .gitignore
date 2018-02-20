@@ -2,3 +2,4 @@
 /nbproject/
 /*.autosave
 /*_dbg
+/massif.out.*

@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <sys/types.h>
+
 #include "util.h"
 
 extern void crc_update(uint8_t *crc, uint8_t b) ;

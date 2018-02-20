@@ -60,13 +60,11 @@ int I2COpen(const char *path, int addr) {
     int fd;
 
     if ((fd = open(path, O_RDWR)) < 0) {
-        fprintf(stderr, "%s(): ", __FUNCTION__);
-        perror("open()");
+        perrorl("open()");
         return -1;
     }
     if (ioctl(fd, I2C_SLAVE, addr) < 0) {
-        fprintf(stderr, "%s(): ", __FUNCTION__);
-        perror("ioctl()");
+        perrorl("ioctl()");
         return -1;
     }
     return fd;

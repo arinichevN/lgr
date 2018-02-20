@@ -1,4 +1,3 @@
-
 #include "pinout.h"
 
 #define BLOCK_SIZE              (4*1024)
@@ -194,7 +193,7 @@ static void makeData() {
 int gpioSetup() {
     int fd;
     if ((fd = open("/dev/mem", O_RDWR | O_SYNC | O_CLOEXEC)) < 0) {
-        fprintf(stderr, "%s(): ", __FUNCTION__);
+        fprintf(stderr, "%s(): ", __func__);
         perror("open()");
         return 0;
     }
@@ -202,7 +201,7 @@ int gpioSetup() {
     gpio_buf =  mmap(0, BLOCK_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, GPIO_BASE_BP);
     close(fd);
     if (( gpio_buf == MAP_FAILED) || ( gpio_lm_buf == MAP_FAILED)) {
-        fprintf(stderr, "%s(): ", __FUNCTION__);
+        fprintf(stderr, "%s(): ", __func__);
         perror("mmap()");
         return 0;
     }

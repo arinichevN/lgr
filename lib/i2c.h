@@ -10,7 +10,7 @@
 #include <fcntl.h>
 #include <sys/ioctl.h>
 
-
+#include "common.h"
 
 // I2C definitions
 

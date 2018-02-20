@@ -1,6 +1,6 @@
- void pinWrite(int pin, int value) {
-    int v;
-    v = pin * value;
+
+void pinWrite(int pin, int value) {
+    ;
 }
 
  int pinRead(int pin) {
@@ -12,19 +12,19 @@
 }
 
  void pinLow(int pin) {
-    int v = pin*pin;
+   ;
 }
 
  void pinHigh(int pin) {
-    int v = pin*pin;
+   ;
 }
 
  void pinModeIn(int pin) {
-    int v = pin*pin;
+   ;
 }
 
  void pinModeOut(int pin) {
-    int v = pin*pin;
+   ;
 }
 
  void pinPUD(int pin, int pud) {

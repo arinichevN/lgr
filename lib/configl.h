@@ -3,9 +3,7 @@
 #define LIBPAS_CONFIG_H
 
 #include "dbl.h"
-#include "main.h"
 #include "acp/main.h"
-//#include "udp.h"
 #include "timef.h"
 
 typedef struct {

@@ -3,6 +3,9 @@
 #define LIBPAS_PID_H
 
 #include <stdlib.h>
+
+#include "common.h"
+
 #define PID_MODE_HEATER 'h'
 #define PID_MODE_COOLER 'c'
 #define PID_MODE_UNKNOWN 'u'

@@ -5,6 +5,9 @@
 #include <limits.h>
 #include <time.h>
 #include <sys/time.h>
+
+#include "common.h"
+
 #define GOOD_TOD_DELAY 3
 #define TIME_T_MAX LONG_MAX
 #define LIB_CLOCK CLOCK_REALTIME 

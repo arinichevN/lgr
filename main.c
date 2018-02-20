@@ -13,8 +13,6 @@ unsigned int retry_max = 0;
 Peer peer_client = {.fd = &sock_fd, .addr_size = sizeof peer_client.addr};
 struct timespec cycle_duration = {0, 0};
 
-I1List i1l;
-
 Mutex progl_mutex = MUTEX_INITIALIZER;
 Mutex db_log_mutex = MUTEX_INITIALIZER;
 
@@ -58,17 +56,12 @@ int readSettings() {
 }
 
 int initData() {
-    if (!initI1List(&i1l, ACP_BUFFER_MAX_SIZE)) {
-        return 0;
-    }
     if (!config_getPeerList(&peer_list, NULL, db_public_path)) {
-        FREE_LIST(&i1l);
         return 0;
     }
     if (!loadActiveProg(&prog_list, &peer_list, db_data_path)) {
         freeProgList(&prog_list);
-        FREE_LIST(&peer_list);
-        FREE_LIST(&i1l);
+        freePeerList(&peer_list);
         return 0;
     }
     return 1;
@@ -92,6 +85,7 @@ void initApp() {
 void serverRun(int *state, int init_state) {
     SERVER_HEADER
     SERVER_APP_ACTIONS
+    DEF_SERVER_I1LIST
     if (
             ACP_CMD_IS(ACP_CMD_PROG_STOP) ||
             ACP_CMD_IS(ACP_CMD_PROG_START) ||
@@ -142,7 +136,7 @@ void serverRun(int *state, int init_state) {
                 if (lockMutex(&item->mutex)) {
                     if (item->state == OFF) {
                         item->state = INIT;
-                        db_saveTableFieldInt("prog","enable",item->id, 1, NULL, db_data_path);
+                        db_saveTableFieldInt("prog", "enable", item->id, 1, NULL, db_data_path);
                     }
                     unlockMutex(&item->mutex);
                 }
@@ -156,7 +150,7 @@ void serverRun(int *state, int init_state) {
                 if (lockMutex(&item->mutex)) {
                     if (item->state != OFF) {
                         item->state = DISABLE;
-                        db_saveTableFieldInt("prog","enable",item->id, 0, NULL, db_data_path);
+                        db_saveTableFieldInt("prog", "enable", item->id, 0, NULL, db_data_path);
                     }
                     unlockMutex(&item->mutex);
                 }
@@ -269,8 +263,7 @@ void *threadFunction(void *arg) {
 void freeData() {
     stopAllProgThreads(&prog_list);
     freeProgList(&prog_list);
-    FREE_LIST(&peer_list);
-    FREE_LIST(&i1l);
+    freePeerList(&peer_list);
 }
 
 void freeApp() {
@@ -305,7 +298,7 @@ int main(int argc, char** argv) {
     int data_initialized = 0;
     while (1) {
 #ifdef MODE_DEBUG
-        printf("main(): %s %d\n", getAppState(app_state), data_initialized);
+        printf("%s(): %s %d\n", F,getAppState(app_state), data_initialized);
 #endif
         switch (app_state) {
             case APP_INIT:

@@ -3,6 +3,7 @@
 #define LIBPAS_DHT22_H
 
 #include <stdint.h>
+
 #include "timef.h"
 #include "gpio.h"
 

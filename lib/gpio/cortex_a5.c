@@ -1,5 +1,4 @@
 //Cortex A5 32 bit
-
 #include "pinout.h"
 #define GPIOA_BASE                         0x20930000
 #define GPIOB_BASE                         0x20931000
@@ -213,21 +212,21 @@ int gpioSetup() {
 
     int fd;
     if ((fd = open("/dev/mem", O_RDWR | O_SYNC | O_CLOEXEC)) < 0) {
-        fprintf(stderr, "%s(): ", __FUNCTION__);
+        fprintf(stderr, "%s(): ", __func__);
         perror("open()");
         return 0;
     }
     gpio = mmap(0, BLOCK_SIZE * 3, PROT_READ | PROT_WRITE, MAP_SHARED, fd, GPIOA_BASE);
     if (gpio == MAP_FAILED) {
         close(fd);
-        fprintf(stderr, "%s(): ", __FUNCTION__);
+        fprintf(stderr, "%s(): ", __func__);
         perror("mmap1()");
         return 0;
     }
     gpio_c = mmap(0, 0x1000, PROT_READ | PROT_WRITE, MAP_SHARED, fd, GPIOC_BASE);
     close(fd);
     if (gpio_c == MAP_FAILED) {
-        fprintf(stderr, "%s(): ", __FUNCTION__);
+        fprintf(stderr, "%s(): ", __func__);
         perror("mmap2()");
         return 0;
     }

@@ -1,5 +1,7 @@
 
 #include "app.h"
+#include "acp/main.h"
+
 
 void putse(const char *str) {
 #ifdef MODE_DEBUG
@@ -61,16 +63,16 @@ int initPid(int *pid_file, int *pid, const char *pid_path) {
     char pid_str[INT_STR_SIZE];
     int n_written;
     if (*pid_file == -1) {
-        fprintf(stderr,"%s: couldn't create pid file\n",__FUNCTION__ );
+        fprintf(stderr,"%s: couldn't create pid file\n",__func__ );
         return 0;
     } else {
         rc = flock(*pid_file, LOCK_EX | LOCK_NB);
         if (rc) {//lock failed
             if (errno == EWOULDBLOCK) {
-                fprintf(stderr,"%s: another instance of this process is running\n", __FUNCTION__);
+                fprintf(stderr,"%s: another instance of this process is running\n", __func__);
                 return 0;
             } else {
-                fprintf(stderr,"%s: lock failed\n", __FUNCTION__);
+                fprintf(stderr,"%s: lock failed\n", __func__);
                 return 0;
             }
         } else {//lock succeeded
@@ -86,7 +88,7 @@ int initPid(int *pid_file, int *pid, const char *pid_path) {
             snprintf(pid_str,INT_STR_SIZE ,"%d\n", p);
             n_written = write(*pid_file, pid_str, sizeof pid_str);
             if (n_written != sizeof pid_str) {
-                fprintf(stderr,"%s: writing to pid file failed\n", __FUNCTION__);
+                fprintf(stderr,"%s: writing to pid file failed\n", __func__);
                 return 0;
             }
         }
@@ -127,17 +129,17 @@ int initMutex(Mutex *m) {
     m->created = 0;
     m->attr_initialized = 0;
     if (pthread_mutexattr_init(&m->attr) != 0) {
-        fprintf(stderr,"%s(): ", __FUNCTION__);perror("pthread_mutexattr_init()");
+        fprintf(stderr,"%s(): ", __func__);perror("pthread_mutexattr_init()");
         return 0;
     }
     m->attr_initialized = 1;
     if (pthread_mutexattr_settype(&m->attr, PTHREAD_MUTEX_ERRORCHECK) != 0) {
-        fprintf(stderr,"%s(): ", __FUNCTION__);perror("pthread_mutexattr_settype()");
+        fprintf(stderr,"%s(): ", __func__);perror("pthread_mutexattr_settype()");
         return 0;
     }
 
     if (pthread_mutex_init(&m->self, &m->attr) != 0) {
-        fprintf(stderr,"%s(): ", __FUNCTION__);perror("pthread_mutex_init()");
+        fprintf(stderr,"%s(): ", __func__);perror("pthread_mutex_init()");
         return 0;
     }
     m->created = 1;
@@ -147,14 +149,14 @@ int initMutex(Mutex *m) {
 void freeMutex(Mutex *m) {
     if (m->attr_initialized) {
         if (pthread_mutexattr_destroy(&m->attr) != 0) {
-            fprintf(stderr,"%s(): ", __FUNCTION__);perror("pthread_mutexattr_destroy()");
+            fprintf(stderr,"%s(): ", __func__);perror("pthread_mutexattr_destroy()");
         } else {
             m->attr_initialized = 0;
         }
     }
     if (m->created) {
         if (pthread_mutex_destroy(&m->self) != 0) {
-            fprintf(stderr,"%s(): ", __FUNCTION__);perror("pthread_mutex_destroy()");
+            fprintf(stderr,"%s(): ", __func__);perror("pthread_mutex_destroy()");
         } else {
             m->created = 0;
         }
@@ -163,7 +165,7 @@ void freeMutex(Mutex *m) {
 
 int lockMutex(Mutex *item) {
     if (pthread_mutex_lock(&item->self) != 0) {
-        fprintf(stderr,"%s(): ", __FUNCTION__);perror("pthread_mutex_lock()");
+        fprintf(stderr,"%s(): ", __func__);perror("pthread_mutex_lock()");
         return 0;
     }
     return 1;
@@ -178,7 +180,7 @@ int tryLockMutex(Mutex *item) {
 
 int unlockMutex(Mutex *item) {
     if (pthread_mutex_unlock(&item->self) != 0) {
-        fprintf(stderr,"%s(): ", __FUNCTION__);perror("pthread_mutex_unlock()");
+        fprintf(stderr,"%s(): ", __func__);perror("pthread_mutex_unlock()");
         return 0;
     }
     return 1;
@@ -197,7 +199,7 @@ void skipLine(FILE* stream) {
 int createThread(pthread_t *new_thread, void *(*thread_routine) (void *), char *cmd) {
     *cmd = 0;
     if (pthread_create(new_thread, NULL, thread_routine, (void *) cmd) != 0) {
-        fprintf(stderr,"%s(): ", __FUNCTION__);perror("pthread_create()");
+        fprintf(stderr,"%s(): ", __func__);perror("pthread_create()");
         return 0;
     }
     return 1;
@@ -205,7 +207,7 @@ int createThread(pthread_t *new_thread, void *(*thread_routine) (void *), char *
 
 int createMThread(pthread_t *new_thread, void *(*thread_routine) (void *), void * data) {
     if (pthread_create(new_thread, NULL, thread_routine, data) != 0) {
-        fprintf(stderr,"%s(): ", __FUNCTION__);perror("pthread_create()");
+        fprintf(stderr,"%s(): ", __func__);perror("pthread_create()");
         return 0;
     }
     return 1;
@@ -214,7 +216,7 @@ int createMThread(pthread_t *new_thread, void *(*thread_routine) (void *), void 
 int threadCancelDisable(int *old_state) {
     int r = pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, old_state);
     if (r != 0) {
-        fprintf(stderr,"%s(): ", __FUNCTION__);perror("pthread_setcancelstate()");
+        fprintf(stderr,"%s(): ", __func__);perror("pthread_setcancelstate()");
         return 0;
     }
     return 1;
@@ -223,9 +225,24 @@ int threadCancelDisable(int *old_state) {
 int threadSetCancelState(int state){
     int r=pthread_setcancelstate(state, NULL);
     if (r != 0) {
-        fprintf(stderr, "%s(): ", __FUNCTION__);
+        fprintf(stderr, "%s(): ", __func__);
         perror("pthread_setcancelstate()");
         return 0;
     }
     return 1;
 }
+
+char * strcpyma(char **dest, char *src){
+    size_t n=strlen(src)+1;
+    char * p=calloc(n, sizeof (*dest));
+    if(p==NULL){
+        *dest=NULL;
+        fprintf(stderr, "%s(): ", __func__);
+        perror("calloc()");
+        return NULL;
+    }
+    strncpy(p, src,n);
+    *dest=p;
+    return *dest;
+}
+

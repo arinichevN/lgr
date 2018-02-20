@@ -6,6 +6,7 @@
 
 #define RESET_LIST(list) (list)->item=NULL; (list)->length=0; (list)->max_length=0;
 #define FREE_LIST(list) free((list)->item); RESET_LIST(list)
+#define RESIZE_M_LIST(list, new_length)  if((list)->max_length < new_length){(list)->item = realloc((list)->item, new_length * sizeof (*(list)->item));if ((list)->item == NULL) {(list)->max_length=0;(list)->length=0;}else{(list)->max_length=new_length;}}
 
 #define FUN_LIST_INIT(T) int init ## T ## List(T ## List *list, unsigned int n){list->max_length=list->length=0;list->item=NULL;if(n<=0){list->max_length=0;return 1;}list->item = calloc(n, sizeof *(list->item));if (list->item == NULL) {return 0;}(list)->max_length=n;return 1;}
 #define FUN_LIST_GET_BY(V,T) T *get##T##By_##V (int id, const T##List *list) {  LIST_GET_BY(V) }

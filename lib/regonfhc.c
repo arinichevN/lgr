@@ -13,6 +13,9 @@ void regonfhc_control(RegOnfHC *item) {
     switch (item->state) {
         case REG_INIT:
             if (!acp_readSensorFTS(&item->sensor)) {
+#ifdef MODE_DEBUG
+                puts("reading from sensor failed");
+#endif
                 return;
             }
             item->tmr.ready = 0;
@@ -120,6 +123,9 @@ void regonfhc_control(RegOnfHC *item) {
                 }
                 controlEM(reg_em, item->output);
                 controlEM(reg_em_other, 0.0f);
+                if(reg_secureNeed(&item->secure_out)){
+                    item->state=REG_SECURE;
+                }
             } else {
                 if (item->snsrf_count > SNSRF_COUNT_MAX) {
                     controlEM(&item->heater, 0.0f);
@@ -138,6 +144,13 @@ void regonfhc_control(RegOnfHC *item) {
             }
             break;
         }
+        case REG_SECURE:
+            controlEM(&item->heater, item->secure_out.heater_duty_cycle);
+            controlEM(&item->cooler,item->secure_out.cooler_duty_cycle);
+            if(!reg_secureNeed(&item->secure_out)){
+                item->state=REG_BUSY;
+            }
+            break;
         case REG_DISABLE:
             controlEM(&item->heater, 0.0f);
             controlEM(&item->cooler, 0.0f);
@@ -244,4 +257,8 @@ void regonfhc_turnOff(RegOnfHC *item) {
     item->state = REG_OFF;
     controlEM(&item->cooler, 0.0f);
     controlEM(&item->heater, 0.0f);
+}
+
+void regonfhc_secureOutTouch(RegOnfHC *item){
+     reg_secureTouch(&item->secure_out);
 }

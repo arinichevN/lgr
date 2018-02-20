@@ -19,7 +19,8 @@ typedef struct {
     RegOnfHCEM cooler;
     float goal;
     struct timespec change_gap;
-
+    RegSecure secure_out;
+    
     char state;
     char state_r;
     char state_onf;
@@ -51,6 +52,8 @@ extern void regonfhc_setCoolerPower(RegOnfHC *item, float value);
 extern void regonfhc_setEMMode(RegOnfHC *item, const char * value);
 
 extern void regonfhc_turnOff(RegOnfHC *item);
+
+extern void regonfhc_secureOutTouch(RegOnfHC *item);
 
 #endif 
 

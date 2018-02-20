@@ -7,7 +7,7 @@ CONF_DIR=/etc/controller
 CONF_DIR_APP=$CONF_DIR/$APP
 
 #DEBUG_PARAM="-Wall -pedantic"
-DEBUG_PARAM="-Wall"
+DEBUG_PARAM="-Wall -pedantic -g"
 MODE_DEBUG=-DMODE_DEBUG
 MODE_FULL=-DMODE_FULL
 

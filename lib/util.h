@@ -10,6 +10,9 @@
 #include <limits.h>
 #include <fcntl.h>
 #include <unistd.h>
+
+#include "common.h"
+
 extern void dumpStr(const char *buf) ;
 
 extern void strnline(char **v) ;

@@ -6,7 +6,6 @@
 #include "acp/main.h"
 #include "udp.h"
 #include "timef.h"
-#include "main.h"
 
 extern int config_getStrValFromTbl(PGconn *db_conn, const char *id, char *value, const char *tbl, size_t value_size);
 

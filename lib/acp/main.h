@@ -46,8 +46,8 @@
 #define ACP_SEND_STR(V) acp_responseSendStr(V, ACP_MIDDLE_PACK, response, peer);
 
 typedef struct {
-    char id[NAME_SIZE];
-    char addr_str[LINE_SIZE];
+    char * id;
+    char * addr_str;
     int port;
     int *fd;
     struct sockaddr_in addr;
@@ -58,6 +58,7 @@ typedef struct {
 
 DEC_LIST(Peer)
 DEC_FUN_LIST_INIT(Peer)
+extern void freePeerList(PeerList *list);
 
 typedef struct {
     char cmd[ACP_COMMAND_MAX_SIZE];
@@ -67,6 +68,7 @@ typedef struct {
     size_t cmd_size;
     size_t data_size;
     size_t buf_size;
+    size_t data_rows_count;
     uint8_t crc;
 } ACPRequest;
 

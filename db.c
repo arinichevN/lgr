@@ -205,7 +205,7 @@ int getProg_callback(void *d, int argc, char **argv, char **azColName) {
 int getProgByIdFDB(int prog_id, Prog *item, PeerList *peer_list, sqlite3 *dbl, const char *db_path) {
     if (dbl != NULL && db_path != NULL) {
 #ifdef MODE_DEBUG
-        fprintf(stderr, "%s(): dbl xor db_path expected\n", __FUNCTION__);
+        fprintf(stderr, "%s(): dbl xor db_path expected\n", F);
 #endif
         return 0;
     }
@@ -224,7 +224,7 @@ int getProgByIdFDB(int prog_id, Prog *item, PeerList *peer_list, sqlite3 *dbl, c
     snprintf(q, sizeof q, "select " PROG_FIELDS " from prog where id=%d", prog_id);
     if (!db_exec(db, q, getProg_callback, &data)) {
 #ifdef MODE_DEBUG
-        fprintf(stderr, "%s(): query failed\n", __FUNCTION__);
+        fprintf(stderr, "%s(): query failed\n", F);
 #endif
         if(close)sqlite3_close(db);
         return 0;

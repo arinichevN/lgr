@@ -2,6 +2,7 @@
 #define LIBPAS_1W_H
 
 #include <stdint.h>
+
 #include "timef.h"
 #include "gpio.h"
 

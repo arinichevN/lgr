@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <libpq-fe.h>
+
 #include "app.h"
 
 extern int initDB(PGconn **conn, char *conninfo);
