@@ -15,6 +15,8 @@
 #include "../util.h"
 #include "../udp.h"
 #include "../crc.h"
+#include "../lcorrection.h"
+#include "../lreduction.h"
 
 #define ACP_RETRY_NUM 12
 
@@ -299,6 +301,10 @@ extern void acp_printI2(I2List *list) ;
 extern void acp_printI3(I3List *list) ;
 
 extern void acp_sendPeerListInfo(PeerList *pl, ACPResponse *response, Peer *peer);
+
+extern void acp_sendLCorrectionListInfo(LCorrectionList *list, ACPResponse *response, Peer *peer);
+
+extern void acp_sendLReductionListInfo(LReductionList *list, ACPResponse *response, Peer *peer);
 
 DEC_FUN_ACP_REQUEST_DATA_TO(I1List)
 

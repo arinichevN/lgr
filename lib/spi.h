@@ -2,12 +2,26 @@
 #ifndef LIBPAS_SPI_H
 #define LIBPAS_SPI_H
 
-#include "main.h"
+#include <stdio.h>
+#include <stdint.h>
+#include <fcntl.h>
+#include <errno.h>
+#include <string.h>
+#include <sys/ioctl.h>
+#include <linux/spi/spidev.h>
 
-int wiringPiSPIGetFd  (int channel) ;
-int wiringPiSPIDataRW (int channel, unsigned char *data, int len) ;
-int wiringPiSPISetup  (int channel, int speed) ;
+#include "common.h"
 
+typedef struct {
+    char *path;
+    int fd;
+    int speed;
+    int bpw;
+} SPI;
+
+extern int spi_setup(SPI *item);
+
+extern int spi_rw(SPI *item, unsigned char *data,unsigned int len);
 
 #endif 
 

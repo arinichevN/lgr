@@ -1030,7 +1030,6 @@ void acp_pingPeer(Peer *item) {
 }
 
 void acp_pingPeerList(PeerList *list, struct timespec interval, struct timespec now) {
-    int i;
     FORL{
         if (timeHasPassed(interval, LIi.time1, now)) {
             acp_pingPeer(&LIi);
@@ -1217,6 +1216,46 @@ void acp_sendPeerListInfo(PeerList *pl, ACPResponse *response, Peer *peer) {
         ACP_SEND_STR(q)
     }
     ACP_SEND_STR("+-----------+---------------+-----------+-----------+----------------+\n")
+}
+
+void acp_sendLCorrectionListInfo(LCorrectionList *list, ACPResponse *response, Peer *peer) {
+    char q[LINE_SIZE];
+    ACP_SEND_STR("+-----------------------------------------------+\n")
+    ACP_SEND_STR("|                linear correction              |\n")
+    ACP_SEND_STR("+-----------+-----------+-----------+-----------+\n")
+    ACP_SEND_STR("|  pointer  |    id     |  factor   |   delta   |\n")
+    ACP_SEND_STR("+-----------+-----------+-----------+-----------+\n")
+    FORL {
+        snprintf(q, sizeof q, "|%11p|%11d|%11.3f|%11.3f|\n",
+                (void *) &LIi,
+                LIi.id,
+                LIi.factor,
+                LIi.delta
+                );
+        ACP_SEND_STR(q)
+    }
+    ACP_SEND_STR("+-----------+-----------+-----------+-----------+\n")
+}
+
+void acp_sendLReductionListInfo(LReductionList *list, ACPResponse *response, Peer *peer) {
+    char q[LINE_SIZE];
+    ACP_SEND_STR("+-----------------------------------------------------------------------+\n")
+    ACP_SEND_STR("|                           linear reduction                            |\n")
+    ACP_SEND_STR("+-----------+-----------+-----------+-----------+-----------+-----------+\n")
+    ACP_SEND_STR("|  pointer  |    id     |  min_in   |  max_in   |  min_out  |  max_out  |\n")
+    ACP_SEND_STR("+-----------+-----------+-----------+-----------+-----------+-----------+\n")
+    FORL {
+        snprintf(q, sizeof q, "|%11p|%11d|%11.3f|%11.3f|%11.3f|%11.3f|\n",
+                (void *) &LIi,
+                LIi.id,
+                LIi.min_in,
+                LIi.max_in,
+                LIi.min_out,
+                LIi.max_out
+                );
+        ACP_SEND_STR(q)
+    }
+    ACP_SEND_STR("+-----------+-----------+-----------+-----------+-----------+-----------+\n")
 }
 
 

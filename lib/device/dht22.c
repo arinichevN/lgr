@@ -23,45 +23,17 @@ int dht22_read(int pin, float *t, float *h) {
     memset(arr, 0, sizeof arr);
 
     for (i = 0; i < DHT22_MAXTIMINGS; i++) {
-        /*
-                clock_t start, now;
-                start = clock();
-         */
         int c = 0;
         while (pinRead(pin) == laststate) {
-            /*
-                        now = clock();
-             */
             c++;
             delayUsBusy(1);
             if (c >= DHT22_MAX_VAL) {
                 break;
             }
-            /*
-                        if (start + DHT22_MAX_VAL <= now) {
-                            break;
-                        }
-             */
         }
         laststate = pinRead(pin);
-        /*
-                if (now >= start) {
-                    arr[i] = now - start;
-                } else {
-        #ifdef MODE_DEBUG
-                    fprintf(stderr, "dht22_read: ERROR: clock rewind where pin=%d\n", pin);
-        #endif
-                    return 0;
-                }
-         */
         arr[i] = c;
-        /*
-                if (arr[i] > DHT22_MAX_VAL) {
-                    break;
-                }
-         */
     }
-
 
     //dealing with response from chip
     int j = 0; //bit counter
@@ -73,7 +45,6 @@ int dht22_read(int pin, float *t, float *h) {
         if (i < 3) {//skip first 3 signals (response signal)
             continue;
         }
-
         if (i % 2 == 0) {//dealing with data signal
             if (j >= 40) {//we have 8*5 bits of data
                 break;

@@ -3,23 +3,24 @@
 #include "1w.h"
 
 int onewire_reset(int pin) {
-    int i;
     pinPUD(pin, PUD_OFF);
     pinModeOut(pin);
     pinLow(pin);
     delayUsBusy(640); 
-    pinHigh(pin);
+    pinHigh(pin); 
     pinModeIn(pin);
-    for (i = 80; i; i--) {
+    for (int i = 80; i; i--) {
         if (!pinRead(pin)) {
-            while (!pinRead(pin)) {
+            for (int i = 250; i; i--) {
+                if(pinRead(pin)){
+                    return 1;
+                }
+                delayUsBusy(1);
             }
-            pinModeOut(pin);
-            return 1;
+            return 0;
         }
         delayUsBusy(1);
     }
-    pinModeOut(pin);
     delayUsBusy(1);
     return 0;
 }
@@ -42,6 +43,7 @@ void onewire_send_bit1(int pin,int bit) {
 */
 
 void onewire_send_bit(int pin,int bit) {
+    pinModeOut(pin);
     pinLow(pin);
     if (bit) {
         delayUsBusy(1); 
@@ -57,8 +59,7 @@ void onewire_send_bit(int pin,int bit) {
 
 
 void onewire_send_byte(int pin,int b) {
-    int p;
-    for (p = 8; p; p--) {
+    for (int p = 8; p; p--) {
         onewire_send_bit(pin, b & 1);
         b >>= 1;
     }
@@ -81,6 +82,7 @@ int onewire_read_bit(int pin) {
 */
 
 int onewire_read_bit(int pin) {
+    pinModeOut(pin);
     pinLow(pin);
     delayUsBusy(2); 
     pinHigh(pin);
@@ -95,8 +97,7 @@ int onewire_read_bit(int pin) {
 
 uint8_t onewire_read_byte(int pin) {
     uint8_t r = 0;
-    int p;
-    for (p = 8; p; p--) {
+    for (int p = 8; p; p--) {
         r >>= 1;
         if (onewire_read_bit(pin)) {
             r |= 0x80;
@@ -107,8 +108,7 @@ uint8_t onewire_read_byte(int pin) {
 
 
 uint8_t onewire_crc_update(uint8_t crc, uint8_t b) {
-    int i;
-    for (i = 8; i; i--) {
+    for (int i = 8; i; i--) {
         crc = ((crc ^ b) & 1) ? (crc >> 1) ^ 0x8c : (crc >> 1);
         b >>= 1;
     }
@@ -116,7 +116,7 @@ uint8_t onewire_crc_update(uint8_t crc, uint8_t b) {
 }
 
 
-int onewire_skip(int pin) {
+int onewire_skip_rom(int pin) {
     if (!onewire_reset(pin)) {
         return 0;
     }
@@ -130,21 +130,19 @@ int onewire_read_rom(int pin, uint8_t * buf) {
         return 0;
     }
     onewire_send_byte(pin, OW_CMD_READ_ROM);
-    int i;
-    for (i = 0; i < 8; i++) {
+    for (int i = 0; i < 8; i++) {
         *(buf++) = onewire_read_byte(pin);
     }
     return 1;
 }
 
 
-int onewire_match(int pin, const uint8_t * addr) {
+int onewire_match_rom(int pin, const uint8_t * addr) {
     if (!onewire_reset(pin)) {
         return 0;
     }
     onewire_send_byte(pin, OW_CMD_MATCH_ROM);
-    int p;
-    for (p = 0; p < 8; p++) {
+    for (int p = 0; p < 8; p++) {
         onewire_send_byte(pin, *(addr++));
     }
     return 1;

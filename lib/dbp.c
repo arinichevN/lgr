@@ -1,56 +1,67 @@
 
-#include "db.h"
+#include "dbp.h"
 
-int initDB(PGconn **conn, char *conninfo) {
+int dbp_init(PGconn **conn, char *conninfo) {
     if (PQstatus(*conn) == CONNECTION_OK) {
         return 1;
     }
     *conn = PQconnectdb(conninfo);
     if (PQstatus(*conn) != CONNECTION_OK) {
-        fprintf(stderr, "%s\n", PQerrorMessage(*conn));
+#ifdef MODE_DEBUG
+        fprintf(stderr, "%s(): %s\n", F, PQerrorMessage(*conn));
+#endif
         PQfinish(*conn);
         return 0;
     }
     return 1;
 }
 
-void freeDB(PGconn *conn) {
+void dbp_free(PGconn *conn) {
     if (PQstatus(conn) == CONNECTION_OK) {
         PQfinish(conn);
     }
 }
 
-PGresult *dbGetDataC(PGconn *conn, char *q, char *ms) {
-    PGresult *r;
-    r = PQexec(conn, q);
+/*
+ * for command returning NO data
+*/
+
+int dbp_cmd(PGconn *conn, char *q) {
+    int out = 0;
+    PGresult *r = PQexec(conn, q);
     if (r == NULL) {
 #ifdef MODE_DEBUG
-        fprintf(stderr, "%s: no result: %s\n", ms, PQerrorMessage(conn));
+        fprintf(stderr, "%s(): %s: no result: %s\n", F, q, PQerrorMessage(conn));
 #endif
-        return r;
+        return out;
     }
-    if (PQresultStatus(r) != PGRES_COMMAND_OK) {
+    if (PQresultStatus(r) == PGRES_COMMAND_OK) {
+        out = 1;
+    }
 #ifdef MODE_DEBUG
-        fprintf(stderr, "%s: command is not ok\n", ms);
-#endif
-        PQclear(r);
-        r = NULL;
+    if (out == 0) {
+        fprintf(stderr, "%s(): %s: command is not ok\n", F, q);
     }
-    return r;
+#endif
+    PQclear(r);
+    return out;
 }
 
-PGresult *dbGetDataT(PGconn *conn, char *q, char *ms) {
-    PGresult *r;
-    r = PQexec(conn, q);
+/*
+ *  for command returning data
+*/
+
+PGresult *dbp_exec(PGconn *conn, char *q) {
+    PGresult *r = PQexec(conn, q);
     if (r == NULL) {
 #ifdef MODE_DEBUG
-        fprintf(stderr, "%s: no result: %s\n", ms, PQerrorMessage(conn));
+        fprintf(stderr, "%s(): %s: no result: %s\n", F, q, PQerrorMessage(conn));
 #endif
         return r;
     }
     if (PQresultStatus(r) != PGRES_TUPLES_OK) {
 #ifdef MODE_DEBUG
-        fprintf(stderr, "%s: tuples are not ok\n", ms);
+        fprintf(stderr, "%s(): %s: tuples are not ok\n", F, q);
 #endif
         PQclear(r);
         r = NULL;
@@ -59,37 +70,35 @@ PGresult *dbGetDataT(PGconn *conn, char *q, char *ms) {
 }
 //for use with select count(*)
 
-int dbGetDataN(PGconn *conn, char *q, char *ms) {
-    PGresult *r;
-    r = PQexec(conn, q);
+int dbp_getInt(int *item, PGconn *conn, char *q) {
+    PGresult *r = PQexec(conn, q);
     if (r == NULL) {
 #ifdef MODE_DEBUG
-        fprintf(stderr, "%s: no result: %s\n", ms, PQerrorMessage(conn));
+        fprintf(stderr, "%s(): %s: no result: %s\n", F, q, PQerrorMessage(conn));
 #endif
-        return -1;
+        return 0;
     }
     if (PQresultStatus(r) != PGRES_TUPLES_OK) {
 #ifdef MODE_DEBUG
-        fprintf(stderr, "%s: tuples are not ok\n", ms);
+        fprintf(stderr, "%s(): %s: tuples are not ok\n", F, q);
 #endif
         PQclear(r);
-        return -1;
+        return 0;
     }
-    int n;
-    n = PQntuples(r);
+   int n = PQntuples(r);
     if (n != 1) {
 #ifdef MODE_DEBUG
-        fprintf(stderr, "%s: tuples: need only one, but %d given\n", ms, n);
+        fprintf(stderr, "%s(): %s: tuples: need only one, but %d given\n", F, q, n);
 #endif
         PQclear(r);
-        return -1;
+        return 0;
     }
-    int out = atoi(PQgetvalue(r, 0, 0));
+    *item = atoi(PQgetvalue(r, 0, 0));
     PQclear(r);
-    return out;
+    return 1;
 }
 
-int dbConninfoParse(const char *buf, char *host, int *port, char *dbname, char *user, size_t str_size) {
+int dbp_conninfoParse(const char *buf, char *host, int *port, char *dbname, char *user, size_t str_size) {
     int i, host_found = 0, port_found = 0, dbname_found = 0, user_found = 0;
     *port = 0;
     memset(host, 0, str_size);
@@ -134,15 +143,15 @@ int dbConninfoParse(const char *buf, char *host, int *port, char *dbname, char *
     return 1;
 }
 
-int dbConninfoEq(char *c1, char *c2) {
+int dbp_conninfoEq(char *c1, char *c2) {
     char host1[NAME_SIZE], host2[NAME_SIZE];
     int port1, port2;
     char dbname1[NAME_SIZE], dbname2[NAME_SIZE];
     char user1[NAME_SIZE], user2[NAME_SIZE];
-    if (!dbConninfoParse(c1, host1, &port1, dbname1, user1, NAME_SIZE)) {
+    if (!dbp_conninfoParse(c1, host1, &port1, dbname1, user1, NAME_SIZE)) {
         return 0;
     }
-    if (!dbConninfoParse(c2, host2, &port2, dbname2, user2, NAME_SIZE)) {
+    if (!dbp_conninfoParse(c2, host2, &port2, dbname2, user2, NAME_SIZE)) {
         return 0;
     }
     if (strcmp(host1, host2) != 0) {

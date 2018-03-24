@@ -2,7 +2,7 @@
 #ifndef LIBPAS_MAX6675_H
 #define LIBPAS_MAX6675_H
 
-#include "gpio.h"
+#include "../gpio.h"
 
 typedef struct {
     int miso;

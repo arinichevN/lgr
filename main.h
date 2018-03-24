@@ -3,12 +3,14 @@
 #define LGR_H
 
 #include "lib/dbl.h"
+#include "lib/dbp.h"
 #include "lib/configl.h"
 #include "lib/util.h"
 #include "lib/crc.h"
 #include "lib/app.h"
 #include "lib/timef.h"
 #include "lib/udp.h"
+#include "lib/tsv.h"
 #include "lib/acp/main.h"
 #include "lib/acp/app.h"
 #include "lib/acp/prog.h"
@@ -26,7 +28,6 @@
 #define CONF_DIR "./"
 #endif
 #define CONFIG_FILE "" CONF_DIR "config.tsv"
-#define CONFIG_FILE_DB "" CONF_DIR "main.conf"
 
 #define WAIT_RESP_TIMEOUT 3
 
@@ -53,7 +54,6 @@ struct prog_st {
     size_t max_rows;
     char kind[NAME_SIZE];
 
-    unsigned int retry_count;
     char state;
     Ton_ts tmr;
     SensorFTS sensor_fts;

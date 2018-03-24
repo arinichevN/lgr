@@ -2,7 +2,7 @@
 #ifndef LIBPAS_MAX31855_H
 #define LIBPAS_MAX31855_H
 
-#include "gpio.h"
+#include "../gpio.h"
 
 extern int max31855_init(int sclk, int cs, int miso);
 

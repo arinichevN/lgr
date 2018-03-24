@@ -147,7 +147,7 @@ int readFTS(SensorFTS *s) {
     return acp_readSensorFTS(s);
 }
 
-int saveFTS(Prog *item, const char *db_path) {
+int l_saveFTS(Prog *item, const char *db_path) {
     if (item->max_rows <= 0) {
         return 0;
     }
@@ -187,6 +187,7 @@ int saveFTS(Prog *item, const char *db_path) {
 #ifdef MODE_DEBUG
             fprintf(stderr, "saveFTS(): insert failed\n");
 #endif
+            return 0;
         }
     } else {
         snprintf(q, sizeof q, "update v_real set mark = %ld, value = %f, status = '%s' where id = %d and mark = (select min(mark) from v_real where id = %d)", now.tv_sec, item->sensor_fts.value.value, status, item->id, item->id);
@@ -198,7 +199,71 @@ int saveFTS(Prog *item, const char *db_path) {
         }
     }
     sqlite3_close(db);
-    return 0;
+    return 1;
+}
+
+int p_saveFTS(Prog *item, PGconn *db_conn) {
+    if (item->max_rows <= 0) {
+        return 0;
+    }
+    int n = 0;
+    char q[LINE_SIZE];
+    snprintf(q, sizeof q, "select count(*) from v_real where id=%d", item->id);
+    if (!dbp_getInt(&n, db_conn, q)) {
+#ifdef MODE_DEBUG
+        fprintf(stderr, "%s(): failed to count\n", F);
+#endif
+        return 0;
+    }
+    char *status;
+    if (item->sensor_fts.value.state) {
+        status = STATUS_SUCCESS;
+    } else {
+        status = STATUS_FAILURE;
+    }
+    struct timespec now = getCurrentTime();
+    if (n < item->max_rows) {
+        snprintf(q, sizeof q, "insert into log.v_real(id, mark, value, status) values (%d, %ld, %f, '%s')", item->id, now.tv_sec, item->sensor_fts.value.value, status);
+        if (!dbp_cmd(db_conn, q)) {
+#ifdef MODE_DEBUG
+            fprintf(stderr, "%s(): insert failed\n", F);
+#endif
+            return 0;
+        }
+    } else {
+        snprintf(q, sizeof q, "update log.v_real set mark = %ld, value = %f, status = '%s' where id = %d and mark = (select min(mark) from v_real where id = %d)", now.tv_sec, item->sensor_fts.value.value, status, item->id, item->id);
+        if (!dbp_cmd(db_conn, q)) {
+#ifdef MODE_DEBUG
+            fprintf(stderr, "%s(): update failed\n", F);
+#endif
+            return 0;
+        }
+    }
+    return 1;
+}
+
+int pp_saveFTS(Prog *item, PGconn *db_conn) {
+    if (item->max_rows <= 0) {
+        return 0;
+    }
+    char q[LINE_SIZE];
+    char *status;
+    if (item->sensor_fts.value.state) {
+        status = STATUS_SUCCESS;
+    } else {
+        status = STATUS_FAILURE;
+    }
+    struct timespec now = getCurrentTime();
+    snprintf(q, sizeof q, "select log.do_real(%d,%f,%u,%ld,'%s')", item->id, item->sensor_fts.value.value, item->max_rows, now.tv_sec, status);
+    PGresult *r=dbp_exec(db_conn, q);
+    if (r==NULL) {
+#ifdef MODE_DEBUG
+        fprintf(stderr, "%s(): log function failed\n", F);
+#endif
+        return 0;
+    }
+     PQclear(r);
+    return 1;
 }
 
 int bufCatProgInit(Prog *item, ACPResponse *response) {
@@ -245,7 +310,7 @@ void printData(ACPResponse *response) {
     SEND_STR(q)
     snprintf(q, sizeof q, "db_public_path: %s\n", db_public_path);
     SEND_STR(q)
-    snprintf(q, sizeof q, "db_log_path: %s\n", db_log_path);
+    snprintf(q, sizeof q, "db_conninfo_log: %s\n", db_conninfo_log);
     SEND_STR(q)
     snprintf(q, sizeof q, "app_state: %s\n", getAppState(app_state));
     SEND_STR(q)

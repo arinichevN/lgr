@@ -29,13 +29,13 @@ extern uint8_t onewire_read_byte(int pin) ;
 extern uint8_t onewire_crc_update(uint8_t crc, uint8_t b) ;
 
 
-extern int onewire_skip(int pin) ;
+extern int onewire_skip_rom(int pin) ;
 
 
 extern int onewire_read_rom(int pin, uint8_t * buf) ;
 
 
-extern int onewire_match(int pin, const uint8_t * addr) ;
+extern int onewire_match_rom(int pin, const uint8_t * addr) ;
 
 #endif /* 1W_H */
 

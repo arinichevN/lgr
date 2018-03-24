@@ -1,9 +1,12 @@
 #ifndef LIBPAS_DSTRUCTURE_AUTO_H
 #define LIBPAS_DSTRUCTURE_AUTO_H
 
+#define DEC_PLIST(T) typedef struct {T **item; size_t length;size_t max_length;} T##PList;
 #define DEC_LIST(T) typedef struct {T *item; size_t length;size_t max_length;} T##List;
 #define DEC_LLIST(T) typedef struct {T *top; T *last; size_t length;} T##List;
+#define LIST_INITIALIZER {.item = NULL, .length = 0, .max_length = 0}
 
+#define NULL_LIST(list) memset((list)->item,0,(list)->max_length * sizeof (*(list)->item));
 #define RESET_LIST(list) (list)->item=NULL; (list)->length=0; (list)->max_length=0;
 #define FREE_LIST(list) free((list)->item); RESET_LIST(list)
 #define RESIZE_M_LIST(list, new_length)  if((list)->max_length < new_length){(list)->item = realloc((list)->item, new_length * sizeof (*(list)->item));if ((list)->item == NULL) {(list)->max_length=0;(list)->length=0;}else{(list)->max_length=new_length;}}
@@ -21,7 +24,7 @@
 
 
 
-
+#define FIFO_LIST_INITIALIZER {.item = NULL, .length = 0, .pop_item = NULL, .push_item = NULL}
 #define DEC_FIFO_LIST(T) struct fifo_item_ ## T {T data;int free;struct fifo_item_ ## T *prev;struct fifo_item_ ## T *next;};typedef struct fifo_item_ ## T FIFOItem_ ## T;typedef struct {FIFOItem_ ## T *item;size_t length;FIFOItem_ ## T *push_item;FIFOItem_ ## T *pop_item;Mutex mutex;} FIFOItemList_ ## T;
 #define FUN_FIFO_PUSH(T) int T ## _fifo_push(T item, FIFOItemList_ ## T *list) {if (!lockMutex(&list->mutex)) {return 0;}if (list->push_item == NULL) {unlockMutex(&list->mutex);return 0;}list->push_item->data = item;list->push_item->free = 0;if(list->pop_item==NULL){list->pop_item=list->push_item;}if (list->push_item->next->free) {list->push_item = list->push_item->next;} else {list->push_item = NULL;}unlockMutex(&list->mutex);return 1;}
 #define FUN_FIFO_POP(T) int T ## _fifo_pop(T * item, FIFOItemList_ ## T *list) {if (!lockMutex(&list->mutex)) {return 0;}if (list->pop_item == NULL) {unlockMutex(&list->mutex);return 0;}*item = list->pop_item->data;list->pop_item->free = 1;if (list->push_item == NULL) {list->push_item = list->pop_item;}if (!list->pop_item->next->free) {list->pop_item = list->pop_item->next;} else {list->pop_item = NULL;}unlockMutex(&list->mutex);return 1;}

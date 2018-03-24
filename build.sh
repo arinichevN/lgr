@@ -6,6 +6,12 @@ INST_DIR=/usr/sbin
 CONF_DIR=/etc/controller
 CONF_DIR_APP=$CONF_DIR/$APP
 
+#lubuntu
+#PSQL_I_DIR=-I/usr/include/postgresql
+#xubuntu
+PSQL_I_DIR=-I/opt/PostgreSQL/9.5/include
+PSQL_L_DIR=-L/opt/PostgreSQL/9.5/lib
+
 #DEBUG_PARAM="-Wall -pedantic"
 DEBUG_PARAM="-Wall -pedantic -g"
 MODE_DEBUG=-DMODE_DEBUG
@@ -51,19 +57,21 @@ function conf_autostart {
 }
 
 function build_lib {
-	gcc $1 $PLATFORM -c app.c -D_REENTRANT $DEBUG_PARAM -lpthread && \
-	gcc $1 $PLATFORM -c crc.c -D_REENTRANT $DEBUG_PARAM -lpthread && \
-	gcc $1 $PLATFORM -c timef.c -D_REENTRANT $DEBUG_PARAM -lpthread && \
-	gcc $1 $PLATFORM -c udp.c -D_REENTRANT $DEBUG_PARAM -lpthread && \
-	gcc $1 $PLATFORM -c util.c -D_REENTRANT $DEBUG_PARAM -lpthread && \
-	gcc $1 $PLATFORM -c dbl.c -D_REENTRANT -DSQLITE_THREADSAFE=2 -DSQLITE_OMIT_LOAD_EXTENSION $DEBUG_PARAM -lpthread -lsqlite3 && \
-	gcc $1 $PLATFORM -c configl.c -D_REENTRANT -DSQLITE_THREADSAFE=2 -DSQLITE_OMIT_LOAD_EXTENSION $DEBUG_PARAM -lpthread -lsqlite3 && \
+	gcc $1 -c app.c -D_REENTRANT $DEBUG_PARAM -lpthread && \
+	gcc $1 -c crc.c -D_REENTRANT $DEBUG_PARAM -lpthread && \
+	gcc $1 -c timef.c -D_REENTRANT $DEBUG_PARAM -lpthread && \
+	gcc $1 -c udp.c -D_REENTRANT $DEBUG_PARAM -lpthread && \
+	gcc $1 -c util.c -D_REENTRANT $DEBUG_PARAM -lpthread && \
+	gcc $1 -c tsv.c -D_REENTRANT $DEBUG_PARAM -lpthread && \
+	gcc $1 -c dbl.c -D_REENTRANT -DSQLITE_THREADSAFE=2 -DSQLITE_OMIT_LOAD_EXTENSION $DEBUG_PARAM -lpthread -lsqlite3 && \
+	gcc $1 -c dbp.c $PSQL_I_DIR $PSQL_L_DIR -lpq && \
+	gcc $1 -c configl.c -D_REENTRANT -DSQLITE_THREADSAFE=2 -DSQLITE_OMIT_LOAD_EXTENSION $DEBUG_PARAM -lpthread -lsqlite3 && \
 	cd acp && \
-	gcc  $PLATFORM -c main.c -D_REENTRANT $DEBUG_PARAM -lpthread && \
+	gcc $1 -c main.c -D_REENTRANT $DEBUG_PARAM -lpthread && \
 	cd ../ && \
 	echo "library: making archive..." && \
 	rm -f libpac.a
-	ar -crv libpac.a app.o crc.o timef.o udp.o util.o dbl.o configl.o acp/main.o && echo "library: done"
+	ar -crv libpac.a app.o crc.o timef.o udp.o util.o tsv.o dbl.o dbp.o configl.o acp/main.o && echo "library: done"
 	rm -f *.o acp/*.o
 }
 
@@ -73,7 +81,7 @@ function build {
 	cd lib && \
 	build_lib $1 && \
 	cd ../ 
-	gcc -D_REENTRANT -DSQLITE_THREADSAFE=2 -DSQLITE_OMIT_LOAD_EXTENSION $1 $3 $PLATFORM $INI_MODE main.c -o $2 $DEBUG_PARAM -lpthread -lsqlite3 -L./lib -lpac && echo "Application successfully compiled. Launch command: sudo ./"$2
+	gcc -D_REENTRANT -DSQLITE_THREADSAFE=2 -DSQLITE_OMIT_LOAD_EXTENSION $1 $3 $INI_MODE main.c -o $2 $DEBUG_PARAM -lpthread -lsqlite3  -L./lib -lpac $PSQL_I_DIR $PSQL_L_DIR   -lpq && echo "Application successfully compiled. Launch command: sudo ./"$2
 }
 
 function full {

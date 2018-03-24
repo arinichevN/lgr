@@ -1,96 +1,35 @@
 
-#include <stdint.h>
-#include <fcntl.h>
-#include <errno.h>
-#include <string.h>
-#include <sys/ioctl.h>
-#include <linux/spi/spidev.h>
+#include "spi.h"
 
-#include "wiringPi.h"
-
-#include "wiringPiSPI.h"
-
-
-// The SPI bus parameters
-//	Variables as they need to be passed as pointers later on
-
-const static char *spiDev0 = "/dev/spidev0.0";
-const static char *spiDev1 = "/dev/spidev0.1";
-const static uint8_t spiMode = 0;
-const static uint8_t spiBPW = 8;
-const static uint16_t spiDelay = 0;
-
-static uint32_t spiSpeeds [2];
-static int spiFds [2];
-
-/*
- * wiringPiSPIGetFd:
- *	Return the file-descriptor for the given channel
- *********************************************************************************
- */
-
-int wiringPiSPIGetFd(int channel) {
-    return spiFds [channel & 1];
-}
-
-/*
- * wiringPiSPIDataRW:
- *	Write and Read a block of data over the SPI bus.
- *	Note the data ia being read into the transmit buffer, so will
- *	overwrite it!
- *	This is also a full-duplex operation.
- *********************************************************************************
- */
-
-int wiringPiSPIDataRW(int channel, unsigned char *data, int len) {
+int spi_rw(SPI *item, unsigned char *data, unsigned int len) {
     struct spi_ioc_transfer spi;
-
-    channel &= 1;
-
     spi.tx_buf = (unsigned long) data;
     spi.rx_buf = (unsigned long) data;
     spi.len = len;
-    spi.delay_usecs = spiDelay;
-    spi.speed_hz = spiSpeeds [channel];
-    spi.bits_per_word = spiBPW;
+    spi.delay_usecs = 0;
+    spi.speed_hz = item->speed;
+    spi.bits_per_word = item->bpw;
 
-    return ioctl(spiFds [channel], SPI_IOC_MESSAGE(1), &spi);
+    return ioctl(item->fd, SPI_IOC_MESSAGE(1), &spi);
 }
 
-/*
- * wiringPiSPISetup:
- *	Open the SPI device, and set it up, etc.
- *********************************************************************************
- */
-
-int wiringPiSPISetup(int channel, int speed) {
-    int fd;
-
-    channel &= 1;
-
-    if ((fd = open(channel == 0 ? spiDev0 : spiDev1, O_RDWR)) < 0)
-        return wiringPiFailure(WPI_ALMOST, "Unable to open SPI device: %s\n", strerror(errno));
-
-    spiSpeeds [channel] = speed;
-    spiFds [channel] = fd;
-
-    // Set SPI parameters.
-    //	Why are we reading it afterwriting it? I've no idea, but for now I'm blindly
-    //	copying example code I've seen online...
-
-    if (ioctl(fd, SPI_IOC_WR_MODE, &spiMode) < 0) {
-        fprintf(stderr, "%s(): ", __func__);
-        perror("SPI Mode Change failure");
+int spi_setup(SPI *item) {
+    int fd = open(item->path, O_RDWR);
+    if (fd < 0) {
+        fprintf(stderr, "%s(): %s", F, strerror(errno));
+    }
+    int mode = 0;
+    if (ioctl(fd, SPI_IOC_WR_MODE, &mode) < 0) {
+        fprintf(stderr, "%s(): %s", F, strerror(errno));
         return 0;
     }
-    if (ioctl(fd, SPI_IOC_WR_BITS_PER_WORD, &spiBPW) < 0) {
-        fprintf(stderr, "%s(): ", __func__);
-        perror("SPI BPW Change failure");
+    item->bpw = 8;
+    if (ioctl(fd, SPI_IOC_WR_BITS_PER_WORD, &item->bpw) < 0) {
+        fprintf(stderr, "%s(): %s", F, strerror(errno));
         return 0;
     }
-    if (ioctl(fd, SPI_IOC_WR_MAX_SPEED_HZ, &speed) < 0) {
-        fprintf(stderr, "%s(): ", __func__);
-        perror("SPI Speed Change failure");
+    if (ioctl(fd, SPI_IOC_WR_MAX_SPEED_HZ, &item->speed) < 0) {
+        fprintf(stderr, "%s(): %s", F, strerror(errno));
         return 0;
     }
     return fd;

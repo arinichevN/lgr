@@ -5,8 +5,8 @@
 #include <stdio.h>
 #include <stdint.h>
 
-#include "timef.h"
-#include "1w.h"
+#include "../timef.h"
+#include "../1w.h"
 
 #define DS18B20_SCRATCHPAD_BYTE_NUM 8 
 #define DS18B20_EEPROM_BYTE_NUM 3
@@ -35,7 +35,13 @@ extern int ds18b20_set_resolution(int pin, const uint8_t *addr, uint8_t res) ;
 
 extern int ds18b20_get_resolution(int pin, const uint8_t *addr, int *res) ;
 
+extern void ds18b20_wait_convertion(int pin);
+
 extern int ds18b20_convert_t(int pin, const uint8_t *addr) ;
+
+extern int ds18b20_convert_t_all(int pin);
+
+extern int ds18b20_read_temp(int pin, const uint8_t *addr, float * temp);
 
 extern int ds18b20_get_temp(int pin, const uint8_t *addr, float * temp) ;
 

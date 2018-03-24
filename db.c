@@ -105,7 +105,7 @@ int deleteProgById(int id, ProgList *list, char *db_data_path) {
             }
             list->length--;
             stopProgThread(curr);
-            db_saveTableFieldInt("prog","load",curr->id, 0, NULL, db_data_path);
+            db_saveTableFieldInt("prog", "load", curr->id, 0, NULL, db_data_path);
             freeProg(curr);
 #ifdef MODE_DEBUG
             printf("prog with id: %d deleted from prog_list\n", id);
@@ -132,6 +132,7 @@ int loadActiveProg_callback(void *d, int argc, char **argv, char **azColName) {
     }
     return EXIT_SUCCESS;
 }
+
 int loadActiveProg(ProgList *list, PeerList *peer_list, char *db_path) {
     sqlite3 *db;
     if (!db_open(db_path, &db)) {
@@ -156,7 +157,7 @@ int getProg_callback(void *d, int argc, char **argv, char **azColName) {
     int load = 0, enable = 0;
     int c = 0;
     for (int i = 0; i < argc; i++) {
-       if (DB_COLUMN_IS("id")) {
+        if (DB_COLUMN_IS("id")) {
             item->id = atoi(argv[i]);
             c++;
         } else if (DB_COLUMN_IS("sensor_fts_id")) {
@@ -182,12 +183,17 @@ int getProg_callback(void *d, int argc, char **argv, char **azColName) {
             load = atoi(argv[i]);
             c++;
         } else {
-            fputs("getProg_callback: unknown column\n", stderr);
+#ifdef MODE_DEBUG
+            fprintf(stderr, "%s(): unknown column:%s\n", F, DB_COLUMN_NAME);
+#endif
+            c++;
         }
     }
 #define N 7
     if (c != N) {
-        fprintf(stderr, "getProg_callback(): required %d columns but %d found\n", N, c);
+#ifdef MODE_DEBUG
+        fprintf(stderr, "%s(): required %d columns but %d found\n", F, N, c);
+#endif
         return EXIT_FAILURE;
     }
 #undef N
@@ -197,7 +203,7 @@ int getProg_callback(void *d, int argc, char **argv, char **azColName) {
         item->state = DISABLE;
     }
     if (!load) {
-        db_saveTableFieldInt("prog","load",item->id, 1, data->db_data, NULL);
+        db_saveTableFieldInt("prog", "load", item->id, 1, data->db_data, NULL);
     }
     return EXIT_SUCCESS;
 }
@@ -210,12 +216,12 @@ int getProgByIdFDB(int prog_id, Prog *item, PeerList *peer_list, sqlite3 *dbl, c
         return 0;
     }
     sqlite3 *db;
-    int close =0;
+    int close = 0;
     if (db_path != NULL) {
         if (!db_open(db_path, &db)) {
             return 0;
         }
-        close =1;
+        close = 1;
     } else {
         db = dbl;
     }
@@ -226,10 +232,10 @@ int getProgByIdFDB(int prog_id, Prog *item, PeerList *peer_list, sqlite3 *dbl, c
 #ifdef MODE_DEBUG
         fprintf(stderr, "%s(): query failed\n", F);
 #endif
-        if(close)sqlite3_close(db);
+        if (close)sqlite3_close(db);
         return 0;
     }
-    if(close)sqlite3_close(db);
+    if (close)sqlite3_close(db);
     return 1;
 }
 

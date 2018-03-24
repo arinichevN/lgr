@@ -2,16 +2,18 @@
 
 int app_state = APP_INIT;
 
-char db_data_path[LINE_SIZE];
-char db_log_path[LINE_SIZE];
-char db_public_path[LINE_SIZE];
+char *db_data_path;
+char *db_public_path;
+TSVresult config_tsv = TSVRESULT_INITIALIZER;
+
 
 int sock_port = -1;
 int sock_fd = -1;
 
-unsigned int retry_max = 0;
 Peer peer_client = {.fd = &sock_fd, .addr_size = sizeof peer_client.addr};
 struct timespec cycle_duration = {0, 0};
+char *db_conninfo_log;
+PGconn *db_conn_log = NULL;
 
 Mutex progl_mutex = MUTEX_INITIALIZER;
 Mutex db_log_mutex = MUTEX_INITIALIZER;
@@ -22,55 +24,56 @@ ProgList prog_list = {NULL, NULL, 0};
 #include "util.c"
 #include "db.c"
 
-int readSettings() {
-    FILE* stream = fopen(CONFIG_FILE, "r");
-    if (stream == NULL) {
+int readSettings(int *port, struct timespec *cd,  char ** db_data_path, char ** db_public_path, char ** db_conninfo_log, TSVresult *config_tsv, const char *data_path) {
+    if (!TSVinit(config_tsv, data_path)) {
+        TSVclear(config_tsv);
+        return 0;
+    }
+    int _port = TSVgetis(config_tsv, 0, "port");
+    int _cd_sec = TSVgetis(config_tsv, 0, "cd_sec");
+    int _cd_nsec = TSVgetis(config_tsv, 0, "cd_nsec");
+    char *_db_data_path = TSVgetvalues(config_tsv, 0, "db_data_path");
+    char *_db_public_path = TSVgetvalues(config_tsv, 0, "db_public_path");
+    char *_db_conninfo_log = TSVgetvalues(config_tsv, 0, "db_conninfo_log");
+    if (TSVnullreturned(config_tsv)) {
 #ifdef MODE_DEBUG
-        perror("readSettings()");
+        fprintf(stderr, "%s: bad row format\n", F);
 #endif
         return 0;
     }
-    skipLine(stream);
-    int n;
-    n = fscanf(stream, "%d\t%ld\t%ld\t%u\t%255s\t%255s\t%255s\n",
-            &sock_port,
-            &cycle_duration.tv_sec,
-            &cycle_duration.tv_nsec,
-            &retry_max,
-            db_data_path,
-            db_public_path,
-            db_log_path
-            );
-    if (n != 7) {
-        fclose(stream);
-#ifdef MODE_DEBUG
-        fputs("ERROR: readSettings: bad row format\n", stderr);
-#endif
-        return 0;
-    }
-    fclose(stream);
-#ifdef MODE_DEBUG
-    printf("readSettings: \n\tsock_port: %d, \n\tcycle_duration: %ld sec %ld nsec, \n\tretry_max: %u, \n\tdb_data_path: %s, \n\tdb_public_path: %s, \n\tdb_log_path: %s\n", sock_port, cycle_duration.tv_sec, cycle_duration.tv_nsec, retry_max, db_data_path, db_public_path, db_log_path);
-#endif
+    *port = _port;
+    cd->tv_sec = _cd_sec;
+    cd->tv_nsec = _cd_nsec;
+    *db_data_path = _db_data_path;
+    *db_public_path = _db_public_path;
+    *db_conninfo_log = _db_conninfo_log;
     return 1;
 }
 
 int initData() {
+    if (!dbp_init(&db_conn_log, db_conninfo_log)) {
+        return 0;
+    }
     if (!config_getPeerList(&peer_list, NULL, db_public_path)) {
+        dbp_free(db_conn_log);
         return 0;
     }
     if (!loadActiveProg(&prog_list, &peer_list, db_data_path)) {
         freeProgList(&prog_list);
         freePeerList(&peer_list);
+        dbp_free(db_conn_log);
         return 0;
     }
     return 1;
 }
 
 void initApp() {
-    if (!readSettings()) {
+    if (!readSettings(&sock_port, &cycle_duration, &db_data_path, &db_public_path, &db_conninfo_log, &config_tsv, CONFIG_FILE)) {
         exit_nicely_e("initApp: failed to read settings\n");
     }
+#ifdef MODE_DEBUG
+    printf("\n\tsock_port: %d, \n\tcycle_duration: %ld sec %ld nsec, \n\tdb_data_path: %s, \n\tdb_public_path: %s, \n\tdb_conninfo_log: %s\n", sock_port, cycle_duration.tv_sec, cycle_duration.tv_nsec, db_data_path, db_public_path, db_conninfo_log);
+#endif
     if (!initMutex(&progl_mutex)) {
         exit_nicely_e("initApp: failed to initialize mutex\n");
     }
@@ -183,32 +186,19 @@ void progControl(Prog *item) {
     switch (item->state) {
         case INIT:
             item->tmr.ready = 0;
-            item->retry_count = 0;
             item->state = ACT;
             break;
         case ACT:
-            if (ton_ts(item->interval_min, &item->tmr) || (item->retry_count > 0 && item->retry_count < retry_max)) {
+            if (ton_ts(item->interval_min, &item->tmr)) {
                 if (strcmp(item->kind, LOG_KIND_FTS) == 0) {
-                    if (readFTS(&item->sensor_fts)) {
-                        if (lockMutex(&db_log_mutex)) {
-                            saveFTS(item, db_log_path);
-                            unlockMutex(&db_log_mutex);
-                        }
-                        item->retry_count = 0;
-#ifdef MODE_DEBUG
-                        printf("saved: id=%d value=%f\n", item->id, item->sensor_fts.value.value);
-#endif  
-                    } else {
-                        item->retry_count++;
-#ifdef MODE_DEBUG
-                        printf("failed to read: id=%d retry_count=%u\n", item->id, item->retry_count);
-#endif  
+                    readFTS(&item->sensor_fts);
+                    if (lockMutex(&db_log_mutex)) {
+                        pp_saveFTS(item, db_conn_log);
+                        unlockMutex(&db_log_mutex);
                     }
-
-
                 } else {
 #ifdef MODE_DEBUG
-                    puts("progControl: unknown kind");
+                    fprintf(stderr, "%s(): unknown kind",F);
 #endif
                 }
             }
@@ -226,7 +216,7 @@ void progControl(Prog *item) {
 #ifdef MODE_DEBUG
     struct timespec tm_rest = getTimeRest_ts(item->interval_min, item->tmr.start);
     char *state = getStateStr(item->state);
-    printf("progControl: id=%d state=%s time_rest=%ld sec\n", item->id, state, tm_rest.tv_sec);
+    printf("%s(): id=%d state=%s time_rest=%ld sec\n",F, item->id, state, tm_rest.tv_sec);
 #endif
 }
 
@@ -264,6 +254,7 @@ void freeData() {
     stopAllProgThreads(&prog_list);
     freeProgList(&prog_list);
     freePeerList(&peer_list);
+    dbp_free(db_conn_log);
 }
 
 void freeApp() {
@@ -271,6 +262,7 @@ void freeApp() {
     freeSocketFd(&sock_fd);
     freeMutex(&progl_mutex);
     freeMutex(&db_log_mutex);
+    TSVclear(&config_tsv);
 }
 
 void exit_nicely() {
@@ -298,7 +290,7 @@ int main(int argc, char** argv) {
     int data_initialized = 0;
     while (1) {
 #ifdef MODE_DEBUG
-        printf("%s(): %s %d\n", F,getAppState(app_state), data_initialized);
+        printf("%s(): %s %d\n", F, getAppState(app_state), data_initialized);
 #endif
         switch (app_state) {
             case APP_INIT:
