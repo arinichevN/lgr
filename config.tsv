@@ -1,2 +1,2 @@
-port	cd_sec	cd_nsec	db_data_path	db_public_path	db_conninfo_log
-49172	1	5000000	/etc/controller/lgr/data.db	/etc/controller/public.db	host=localhost port=5432 user=postgres password=654321 dbname=control  connect_timeout=3
+port	cd_sec	cd_nsec	db_data_path	db_conninfo_log
+49172	1	5000000	/etc/controller/lgr/data.db	host=localhost port=5432 user=postgres password=654321 dbname=control  connect_timeout=3

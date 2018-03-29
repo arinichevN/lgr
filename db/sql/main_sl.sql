@@ -1,4 +1,13 @@
-
+CREATE TABLE "peer" (
+    "id" TEXT NOT NULL,
+    "port" INTEGER NOT NULL,
+    "ip_addr" TEXT NOT NULL
+);
+CREATE TABLE "sensor_mapping" (
+    "sensor_id" INTEGER PRIMARY KEY NOT NULL,
+    "peer_id" TEXT NOT NULL,
+    "remote_id" INTEGER NOT NULL
+);
 CREATE TABLE "prog" (
     "id" INTEGER PRIMARY KEY,
     "description" TEXT NOT NULL,
@@ -9,13 +18,3 @@ CREATE TABLE "prog" (
     "enable" INTEGER NOT NULL,
     "load" INTEGER NOT NULL
 );
-
-
-CREATE TABLE "sensor_mapping" (
-    "sensor_id" INTEGER PRIMARY KEY NOT NULL,
-    "peer_id" TEXT NOT NULL,
-    "remote_id" INTEGER NOT NULL
-);
-
-
-

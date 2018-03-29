@@ -308,8 +308,6 @@ void printData(ACPResponse *response) {
     SEND_STR(q)
     snprintf(q, sizeof q, "db_data_path: %s\n", db_data_path);
     SEND_STR(q)
-    snprintf(q, sizeof q, "db_public_path: %s\n", db_public_path);
-    SEND_STR(q)
     snprintf(q, sizeof q, "db_conninfo_log: %s\n", db_conninfo_log);
     SEND_STR(q)
     snprintf(q, sizeof q, "app_state: %s\n", getAppState(app_state));

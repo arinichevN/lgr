@@ -2,10 +2,8 @@
 
 int app_state = APP_INIT;
 
-char *db_data_path;
-char *db_public_path;
 TSVresult config_tsv = TSVRESULT_INITIALIZER;
-
+char *db_data_path;
 
 int sock_port = -1;
 int sock_fd = -1;
@@ -24,7 +22,7 @@ ProgList prog_list = {NULL, NULL, 0};
 #include "util.c"
 #include "db.c"
 
-int readSettings(int *port, struct timespec *cd,  char ** db_data_path, char ** db_public_path, char ** db_conninfo_log, TSVresult *config_tsv, const char *data_path) {
+int readSettings(int *port, struct timespec *cd,  char ** db_data_path, char ** db_conninfo_log, TSVresult *config_tsv, const char *data_path) {
     if (!TSVinit(config_tsv, data_path)) {
         TSVclear(config_tsv);
         return 0;
@@ -33,7 +31,6 @@ int readSettings(int *port, struct timespec *cd,  char ** db_data_path, char ** 
     int _cd_sec = TSVgetis(config_tsv, 0, "cd_sec");
     int _cd_nsec = TSVgetis(config_tsv, 0, "cd_nsec");
     char *_db_data_path = TSVgetvalues(config_tsv, 0, "db_data_path");
-    char *_db_public_path = TSVgetvalues(config_tsv, 0, "db_public_path");
     char *_db_conninfo_log = TSVgetvalues(config_tsv, 0, "db_conninfo_log");
     if (TSVnullreturned(config_tsv)) {
 #ifdef MODE_DEBUG
@@ -45,7 +42,6 @@ int readSettings(int *port, struct timespec *cd,  char ** db_data_path, char ** 
     cd->tv_sec = _cd_sec;
     cd->tv_nsec = _cd_nsec;
     *db_data_path = _db_data_path;
-    *db_public_path = _db_public_path;
     *db_conninfo_log = _db_conninfo_log;
     return 1;
 }
@@ -54,7 +50,7 @@ int initData() {
     if (!dbp_init(&db_conn_log, db_conninfo_log)) {
         return 0;
     }
-    if (!config_getPeerList(&peer_list, NULL, db_public_path)) {
+    if (!config_getPeerList(&peer_list, NULL, db_data_path)) {
         dbp_free(db_conn_log);
         return 0;
     }
@@ -68,11 +64,11 @@ int initData() {
 }
 
 void initApp() {
-    if (!readSettings(&sock_port, &cycle_duration, &db_data_path, &db_public_path, &db_conninfo_log, &config_tsv, CONFIG_FILE)) {
+    if (!readSettings(&sock_port, &cycle_duration, &db_data_path, &db_conninfo_log, &config_tsv, CONFIG_FILE)) {
         exit_nicely_e("initApp: failed to read settings\n");
     }
 #ifdef MODE_DEBUG
-    printf("\n\tsock_port: %d, \n\tcycle_duration: %ld sec %ld nsec, \n\tdb_data_path: %s, \n\tdb_public_path: %s, \n\tdb_conninfo_log: %s\n", sock_port, cycle_duration.tv_sec, cycle_duration.tv_nsec, db_data_path, db_public_path, db_conninfo_log);
+    printf("\n\tsock_port: %d, \n\tcycle_duration: %ld sec %ld nsec, \n\tdb_data_path: %s, \n\tdb_conninfo_log: %s\n", sock_port, cycle_duration.tv_sec, cycle_duration.tv_nsec, db_data_path, db_conninfo_log);
 #endif
     if (!initMutex(&progl_mutex)) {
         exit_nicely_e("initApp: failed to initialize mutex\n");
