@@ -48,6 +48,8 @@ sudo ./lgr_dbg
 4.2 Графический интерфейс пользователя
 для отправки общих для всех демонов команд:
 https://github.com/arinichevN/app_cl
+для чтения результатов регистрации:
+pgAdmin
 
 4.3 Примеры
 Для рассылки udp пакетов используется утилита udpcl (https://github.com/arinichevN/udpcl)
